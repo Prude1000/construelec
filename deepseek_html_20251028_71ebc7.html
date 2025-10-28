@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Servicios</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .cotizador-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .form-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .resultado-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .resultado {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .precio {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+        
+        .desglose {
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .desglose-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .desglose-total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid var(--primary);
+        }
+        
+        .oculto {
+            display: none;
+        }
+        
+        .info {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .cotizador-container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cotiza con ConsTruelec</h1>
+            <p class="subtitle">Cotizador Construelec</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="cotizador-container">
+            <div class="form-container">
+                <h2>Personaliza tu cotización</h2>
+                <form id="cotizador-form">
+                    <div class="form-group">
+                        <label for="tipo-servicio">Tipo de Servicio</label>
+                        <select id="tipo-servicio">
+                            <option value="" disabled selected>Selecciona un servicio</option>
+                            <option value="web">Desarrollo Web</option>
+                            <option value="marketing">Marketing Digital</option>
+                            <option value="diseno">Diseño Gráfico</option>
+                            <option value="consultoria">Consultoría</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="complejidad">Complejidad del Proyecto</label>
+                        <select id="complejidad">
+                            <option value="" disabled selected>Selecciona la complejidad</option>
+                            <option value="basico">Básico</option>
+                            <option value="medio">Medio</option>
+                            <option value="avanzado">Avanzado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tiempo">Tiempo Estimado (semanas)</label>
+                        <input type="number" id="tiempo" min="1" max="52" placeholder="Ej: 4">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Características Adicionales</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="responsive" value="responsive">
+                                <label for="responsive">Diseño Responsive</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="seo" value="seo">
+                                <label for="seo">Optimización SEO</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mantenimiento" value="mantenimiento">
+                                <label for="mantenimiento">Mantenimiento</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="soporte" value="soporte">
+                                <label for="soporte">Soporte 24/7</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="calcular-btn" class="btn">Calcular Cotización</button>
+                </form>
+                
+                <div class="info">
+                    <p><strong>Nota:</strong> Esta cotización es una estimación basada en los parámetros seleccionados. El precio final puede variar según los requisitos específicos de tu proyecto.</p>
+                </div>
+            </div>
+            
+            <div class="resultado-container">
+                <h2>Tu Cotización</h2>
+                <div class="resultado" id="resultado-inicial">
+                    <p>Completa el formulario para ver tu cotización personalizada</p>
+                </div>
+                
+                <div class="resultado oculto" id="resultado-cotizacion">
+                    <p>El costo estimado para tu proyecto es:</p>
+                    <div class="precio" id="precio-total">$0</div>
+                    
+                    <div class="desglose">
+                        <div class="desglose-item">
+                            <span>Servicio base:</span>
+                            <span id="costo-base">$0</span>
+                        </div>
+                        <div class="desglose-item">
+                            <span>Complejidad:</span>
+                            <span id="costo-complejidad">$0</span>
+                        </div>
+                        <div class="desglose-item">
+                            <span>Tiempo:</span>
+                            <span id="costo-tiempo">$0</span>
+                        </div>
+                        <div class="desglose-item" id="caracteristicas-container">
+                            <!-- Las características adicionales se agregarán aquí dinámicamente -->
+                        </div>
+                        <div class="desglose-total">
+                            <span>Total:</span>
+                            <span id="total-final">$0</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="contactar-btn" class="btn" style="margin-top: 20px;">Contactar para más información</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Cotizador de Servicios. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos del DOM
+            const calcularBtn = document.getElementById('calcular-btn');
+            const tipoServicio = document.getElementById('tipo-servicio');
+            const complejidad = document.getElementById('complejidad');
+            const tiempo = document.getElementById('tiempo');
+            const resultadoInicial = document.getElementById('resultado-inicial');
+            const resultadoCotizacion = document.getElementById('resultado-cotizacion');
+            const precioTotal = document.getElementById('precio-total');
+            const costoBase = document.getElementById('costo-base');
+            const costoComplejidad = document.getElementById('costo-complejidad');
+            const costoTiempo = document.getElementById('costo-tiempo');
+            const caracteristicasContainer = document.getElementById('caracteristicas-container');
+            const totalFinal = document.getElementById('total-final');
+            const contactarBtn = document.getElementById('contactar-btn');
+            
+            // Precios base por servicio
+            const preciosBase = {
+                web: 1000,
+                marketing: 800,
+                diseno: 600,
+                consultoria: 1200
+            };
+            
+            // Multiplicadores de complejidad
+            const multiplicadoresComplejidad = {
+                basico: 1,
+                medio: 1.5,
+                avanzado: 2.2
+            };
+            
+            // Costos de características adicionales
+            const costosCaracteristicas = {
+                responsive: 200,
+                seo: 300,
+                mantenimiento: 150,
+                soporte: 250
+            };
+            
+            // Costo por semana de trabajo
+            const costoPorSemana = 100;
+            
+            // Función para calcular la cotización
+            function calcularCotizacion() {
+                // Validar campos
+                if (!tipoServicio.value || !complejidad.value || !tiempo.value) {
+                    alert('Por favor, completa todos los campos obligatorios.');
+                    return;
+                }
+                
+                // Obtener valores del formulario
+                const servicio = tipoServicio.value;
+                const nivelComplejidad = complejidad.value;
+                const semanas = parseInt(tiempo.value);
+                
+                // Obtener características seleccionadas
+                const caracteristicasSeleccionadas = [];
+                document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    caracteristicasSeleccionadas.push(checkbox.value);
+                });
+                
+                // Calcular costos
+                const costoBaseValor = preciosBase[servicio];
+                const multiplicador = multiplicadoresComplejidad[nivelComplejidad];
+                const costoTiempoValor = semanas * costoPorSemana;
+                
+                // Calcular costo de características
+                let costoCaracteristicas = 0;
+                caracteristicasSeleccionadas.forEach(caracteristica => {
+                    costoCaracteristicas += costosCaracteristicas[caracteristica];
+                });
+                
+                // Calcular total
+                const subtotal = (costoBaseValor * multiplicador) + costoTiempoValor;
+                const total = subtotal + costoCaracteristicas;
+                
+                // Mostrar resultados
+                mostrarResultados(
+                    costoBaseValor, 
+                    costoBaseValor * (multiplicador - 1), 
+                    costoTiempoValor, 
+                    costoCaracteristicas, 
+                    caracteristicasSeleccionadas, 
+                    total
+                );
+            }
+            
+            // Función para mostrar los resultados
+            function mostrarResultados(base, complejidadCosto, tiempoCosto, caracteristicasCosto, caracteristicas, total) {
+                // Mostrar contenedor de resultados
+                resultadoInicial.classList.add('oculto');
+                resultadoCotizacion.classList.remove('oculto');
+                
+                // Actualizar valores
+                precioTotal.textContent = `$${total.toLocaleString()}`;
+                costoBase.textContent = `$${base.toLocaleString()}`;
+                costoComplejidad.textContent = `$${complejidadCosto.toLocaleString()}`;
+                costoTiempo.textContent = `$${tiempoCosto.toLocaleString()}`;
+                totalFinal.textContent = `$${total.toLocaleString()}`;
+                
+                // Limpiar características anteriores
+                caracteristicasContainer.innerHTML = '';
+                
+                // Agregar características seleccionadas
+                if (caracteristicas.length > 0) {
+                    caracteristicas.forEach(caracteristica => {
+                        const item = document.createElement('div');
+                        item.className = 'desglose-item';
+                        
+                        let nombreCaracteristica = '';
+                        switch(caracteristica) {
+                            case 'responsive':
+                                nombreCaracteristica = 'Diseño Responsive';
+                                break;
+                            case 'seo':
+                                nombreCaracteristica = 'Optimización SEO';
+                                break;
+                            case 'mantenimiento':
+                                nombreCaracteristica = 'Mantenimiento';
+                                break;
+                            case 'soporte':
+                                nombreCaracteristica = 'Soporte 24/7';
+                                break;
+                        }
+                        
+                        item.innerHTML = `
+                            <span>${nombreCaracteristica}:</span>
+                            <span>$${costosCaracteristicas[caracteristica].toLocaleString()}</span>
+                        `;
+                        caracteristicasContainer.appendChild(item);
+                    });
+                } else {
+                    const item = document.createElement('div');
+                    item.className = 'desglose-item';
+                    item.innerHTML = `
+                        <span>Características adicionales:</span>
+                        <span>$0</span>
+                    `;
+                    caracteristicasContainer.appendChild(item);
+                }
+            }
+            
+            // Función para manejar el botón de contacto
+            function contactar() {
+                const servicio = tipoServicio.options[tipoServicio.selectedIndex].text;
+                const nivelComplejidad = complejidad.options[complejidad.selectedIndex].text;
+                const semanas = tiempo.value;
+                const precio = precioTotal.textContent;
+                
+                const mensaje = `Hola, estoy interesado en el servicio de ${servicio} (${nivelComplejidad}) para un proyecto de ${semanas} semanas. La cotización fue de ${precio}. Me gustaría obtener más información.`;
+                
+                // En un caso real, aquí podrías redirigir a un formulario de contacto o abrir un modal
+                alert(`Redirigiendo al formulario de contacto con el mensaje:\n\n${mensaje}`);
+                
+                // Simulación de envío de datos
+                console.log({
+                    servicio: servicio,
+                    complejidad: nivelComplejidad,
+                    tiempo: semanas,
+                    precio: precio,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Asignar eventos
+            calcularBtn.addEventListener('click', calcularCotizacion);
+            contactarBtn.addEventListener('click', contactar);
+        });
+    </script>
+</body>
+</html>
