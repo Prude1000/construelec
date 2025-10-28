@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsTruelec Profecional</title>
+    <style>
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        
+        /* Header */
+        header {
+            background-color: #fff;
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 50%;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            margin-left: 10px;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: #f1c40f;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: #045789;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #f1c40f;
+        }
+        
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/patchcord.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 100px 0;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #f1c40f;
+            color: #2c3e50;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #e6b800;
+        }
+        
+        /* Servicios */
+        .services {
+            padding: 80px 0;
+            background-color: #f9f9f9;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .section-title h2 {
+            font-size: 2rem;
+            color: #2c3e50;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 3px;
+            background-color: #f1c40f;
+            bottom: 0;
+            left: 25%;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .service-card {
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .service-icon {
+            background-color: #2c3e50;
+            color: #f1c40f;
+            font-size: 2.5rem;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .service-content {
+            padding: 20px;
+        }
+        
+        .service-content h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        /* Sobre Nosotros */
+        .about {
+            padding: 80px 0;
+        }
+        
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+        
+        .about-text {
+            flex: 1;
+        }
+        
+        .about-image {
+            flex: 1;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Proyectos */
+        .projects {
+            padding: 80px 0;
+            background-color: #f9f9f9;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .project-card {
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .project-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .project-card:hover img {
+            transform: scale(1.1);
+        }
+        
+        .project-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 15px;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+        
+        .project-card:hover .project-info {
+            transform: translateY(0);
+        }
+        
+        /* Contacto */
+        .contact {
+            padding: 80px 0;
+        }
+        
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .contact-icon {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .contact-form {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 50px 0 20px;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-logo h3 {
+            color: #f1c40f;
+            margin-bottom: 15px;
+        }
+        
+        .footer-links h4,
+        .footer-services h4 {
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-links h4::after,
+        .footer-services h4::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background-color: #f1c40f;
+            bottom: 0;
+            left: 0;
+        }
+        
+        .footer-links ul,
+        .footer-services ul {
+            list-style: none;
+        }
+        
+        .footer-links ul li,
+        .footer-services ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links ul li a,
+        .footer-services ul li a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links ul li a:hover,
+        .footer-services ul li a:hover {
+            color: #f1c40f;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            nav ul li {
+                margin: 10px 0;
+            }
+            
+            .mobile-menu {
+                display: block;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+            }
+            
+            .about-content {
+                flex-direction: column;
+            }
+            
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <span class="logo-icon"></span>
+                <img src="img/logo constru.jpg">
+                <h1></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#proyectos">Proyectos</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <!-- NUEVO ENLACE AÑADIDO -->
+                    <li><a href="luminotecnia.html">estudio luminotecnico</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu">☰</div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <h2>Soluciones Eléctricas Profesionales</h2>
+            <p>Expertos en instalaciones eléctricas residenciales, comerciales, industriales y cableado estructurado. Garantía de calidad y seguridad en cada proyecto.</p>
+            <a href="#contacto" class="btn">Solicitar un presupuesto</a>
+        </div>
+    </section>
+
+    <!-- Servicios -->
+    <section class="services" id="servicios">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nuestros Servicios</h2>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">🏠</div>
+                    <div class="service-content">
+                        <h3>Instalaciones Residenciales</h3>
+                        <p>Instalación y mantenimiento eléctrico para hogares, incluyendo cableado, iluminación, tomas de corriente y cuadros eléctricos.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🏢</div>
+                    <div class="service-content">
+                        <h3>Instalaciones Comerciales</h3>
+                        <p>Soluciones eléctricas para negocios, oficinas y locales comerciales, cumpliendo con todas las normativas de seguridad.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🏭</div>
+                    <div class="service-content">
+                        <h3>Instalaciones Industriales</h3>
+                        <p>Sistemas eléctricos para fábricas y plantas industriales, incluyendo automatización y control de procesos.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🔌</div>
+                    <div class="service-content">
+                        <h3>Mantenimiento y Reparaciones</h3>
+                        <p>Servicios de mantenimiento preventivo y correctivo para garantizar el óptimo funcionamiento de sus instalaciones.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">💡</div>
+                    <div class="service-content">
+                        <h3>Iluminación y Domótica</h3>
+                        <p>Diseño e instalación de sistemas de iluminación eficiente y soluciones de domótica para mayor confort y ahorro energético.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">⚡</div>
+                    <div class="service-content">
+                        <h3>Paneles Solares</h3>
+                        <p>Instalación de sistemas de energía solar fotovoltaica para reducir costes energéticos y contribuir al medio ambiente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre Nosotros -->
+    <section class="about" id="nosotros">
+        <div class="container">
+            <div class="section-title">
+                <h2>Sobre Nosotros</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Con más de 15 años de experiencia en el sector, ConsTruelec se ha consolidado como una empresa líder en instalaciones eléctricas. Nuestro equipo de electricistas certificados está comprometido con la excelencia, la seguridad y la satisfacción del cliente.</p>
+                    <br>
+                    <p>Nos especializamos en proyectos de cualquier escala, desde pequeñas reformas eléctricas en viviendas hasta complejas instalaciones industriales. Utilizamos materiales de primera calidad y seguimos rigurosos protocolos de seguridad para garantizar resultados duraderos y confiables.</p>
+                    <br>
+                    <p>Nuestra filosofía se basa en la transparencia, el trabajo bien hecho y la atención personalizada a cada cliente, adaptándonos a sus necesidades específicas y presupuesto.</p>
+                </div>
+                <div class="about-image">
+                    <img src="img/operario_tablero.jpg" alt="Electricista trabajando">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Proyectos -->
+    <section class="projects" id="proyectos">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nuestros Proyectos</h2>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <img src="img/luces.jpg" alt="Proyecto residencial">
+                    <div class="project-info">
+                        <h3>Instalación Residencial Completa</h3>
+                        <p>Vivienda unifamiliar con sistema domótico integrado</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <img src="img/residencial.jpg" alt="Proyecto comercial">
+                    <div class="project-info">
+                        <h3>Oficinas Corporativas</h3>
+                        <p>Sistema eléctrico para edificio de 5 plantas</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <img src="img/tab_3barras.jpg" alt="Proyecto industrial">
+                    <div class="project-info">
+                        <h3>Planta Industrial</h3>
+                        <p>Instalación eléctrica y automatización para fábrica</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacto -->
+    <section class="contact" id="contacto">
+        <div class="container">
+            <div class="section-title">
+                <h2>Contacto</h2>
+            </div>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div>
+                            <h3>Dirección</h3>
+                            <p>Calle Hans Kunt, 123<br>La Paz</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div>
+                            <h3>Teléfono</h3>
+                            <p>591 + 67003901</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div>
+                            <h3>Email</h3>
+                            <p>empresa.construelec@outlook.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">🕒</div>
+                        <div>
+                            <h3>Horario</h3>
+                            <p>Lunes - Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 14:00</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="form-contacto">
+                        <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <input type="text" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono">
+                        </div>
+                        <div class="form-group">
+                            <label for="servicio">Servicio de interés</label>
+                            <select id="servicio" name="servicio" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="">Seleccione un servicio</option>
+                                <option value="residencial">Instalaciones Residenciales</option>
+                                <option value="comercial">Instalaciones Comerciales</option>
+                                <option value="industrial">Instalaciones Industriales</option>
+                                <option value="mantenimiento">Mantenimiento y Reparaciones</option>
+                                <option value="iluminacion">Iluminación y Domótica</option>
+                                <option value="solar">Paneles Solares</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mensaje">Mensaje</label>
+                            <textarea id="mensaje" name="mensaje" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Enviar Mensaje</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-logo">
+                    <h3>ElectroPlus</h3>
+                    <p>Expertos en instalaciones eléctricas con más de 15 años de experiencia. Calidad, seguridad y profesionalidad garantizadas.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="#nosotros">Nosotros</a></li>
+                        <li><a href="#proyectos">Proyectos</a></li>
+                        <li><a href="#contacto">Contacto</a></li>
+                        <!-- NUEVO ENLACE TAMBIÉN EN EL FOOTER -->
+                        <li><a href="certificaciones.html">Certificaciones</a></li>
+                    </ul>
+                </div>
+                <div class="footer-services">
+                    <h4>Nuestros Servicios</h4>
+                    <ul>
+                        <li><a href="#">Instalaciones Residenciales</a></li>
+                        <li><a href="#">Instalaciones Comerciales</a></li>
+                        <li><a href="#">Instalaciones Industriales</a></li>
+                        <li><a href="#">Mantenimiento Eléctrico</a></li>
+                        <li><a href="#">Paneles Solares</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 ElectroPlus - Todos los derechos reservados</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Menú móvil
+        document.querySelector('.mobile-menu').addEventListener('click', function() {
+            document.querySelector('nav ul').classList.toggle('active');
+        });
+
+        // Smooth scroll para enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if(targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Cerrar menú móvil si está abierto
+                    document.querySelector('nav ul').classList.remove('active');
+                }
+            });
+        });
+
+        // Manejo del formulario de contacto
+        document.getElementById('form-contacto').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Aquí normalmente enviaríamos los datos al servidor
+            alert('¡Gracias por su mensaje! Nos pondremos en contacto con usted pronto.');
+            this.reset();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Luminotécnica - ElectroPlus</title>
+    <style>
+        :root {
+            --primary: #E8E8ED;
+            --secondary: #f1c40f;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #1a2530);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            margin-right: 10px;
+            color: var(--secondary);
+        }
+
+        .logo img {
+            width: 20%;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .logo span {
+            color: var(--secondary);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        nav ul li a:hover {
+            color: var(--secondary);
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .calculator-card, .results-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            padding: 25px;
+            transition: transform 0.3s;
+        }
+        
+        .calculator-card:hover, .results-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+            color: var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .input-with-unit {
+            position: relative;
+        }
+        
+        .unit {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--primary);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #e6b800;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-calculate {
+            background: var(--accent);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .btn-calculate:hover {
+            background: #2980b9;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .result-item {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .luminaires-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .luminaire-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .luminaire-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        
+        .luminaire-card.selected {
+            border-color: var(--secondary);
+            background-color: rgba(241, 196, 15, 0.1);
+        }
+        
+        .luminaire-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .luminaire-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .luminaire-lm {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .info-box {
+            background: #e8f4fc;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .recommendation {
+            background: #e8f6ef;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 15px;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    <img src="img/logo2.gif">
+                    <h1></h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="app-container">
+            <div class="calculator-card">
+                <h2 class="card-title"><i>💡</i> Calculadora Luminotécnica</h2>
+                
+                <div class="form-group">
+                    <label for="room-type">Tipo de Espacio</label>
+                    <select id="room-type">
+                        <option value="">Seleccione el tipo de espacio</option>
+                        <option value="living">Sala de Estar / Salón</option>
+                        <option value="bedroom">Dormitorio</option>
+                        <option value="kitchen">Cocina</option>
+                        <option value="bathroom">Baño</option>
+                        <option value="office">Oficina</option>
+                        <option value="commercial">Local Comercial</option>
+                        <option value="industrial">Nave Industrial</option>
+                        <option value="corridor">Pasillo / Circulación</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="room-length">Longitud de la Habitación (m)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="room-length" min="1" step="0.1" placeholder="Ej: 5.5">
+                        <span class="unit">m</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="room-width">Ancho de la Habitación (m)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="room-width" min="1" step="0.1" placeholder="Ej: 4.0">
+                        <span class="unit">m</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="room-height">Altura del Techo (m)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="room-height" min="2" step="0.1" value="2.5" placeholder="Ej: 2.7">
+                        <span class="unit">m</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="work-plane">Altura del Plano de Trabajo (m)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="work-plane" min="0" step="0.1" value="0.8" placeholder="Ej: 0.8">
+                        <span class="unit">m</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reflectance">Reflectancia de Paredes y Techo</label>
+                    <select id="reflectance">
+                        <option value="0.8">Alta (Colores claros)</option>
+                        <option value="0.5" selected>Media (Colores intermedios)</option>
+                        <option value="0.3">Baja (Colores oscuros)</option>
+                    </select>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">Información sobre Luminarias</div>
+                    <p>Seleccione el tipo de luminaria que planea utilizar. Si no está seguro, el sistema calculará con valores estándar.</p>
+                </div>
+                
+                <div class="luminaires-grid">
+                    <div class="luminaire-card" data-lm="800">
+                        <div class="luminaire-icon">💡</div>
+                        <div class="luminaire-name">LED Estándar</div>
+                        <div class="luminaire-lm">800-1000 lm</div>
+                    </div>
+                    <div class="luminaire-card" data-lm="1200">
+                        <div class="luminaire-icon">🔦</div>
+                        <div class="luminaire-name">LED Potente</div>
+                        <div class="luminaire-lm">1200-1500 lm</div>
+                    </div>
+                    <div class="luminaire-card" data-lm="1600">
+                        <div class="luminaire-icon">💎</div>
+                        <div class="luminaire-name">LED Premium</div>
+                        <div class="luminaire-lm">1600-2000 lm</div>
+                    </div>
+                    <div class="luminaire-card" data-lm="600">
+                        <div class="luminaire-icon">🛋️</div>
+                        <div class="luminaire-name">LED Ambiental</div>
+                        <div class="luminaire-lm">600-800 lm</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="custom-lumens">O ingrese lúmenes personalizados</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="custom-lumens" min="100" step="50" placeholder="Ej: 1200">
+                        <span class="unit">lm</span>
+                    </div>
+                </div>
+                
+                <button id="calculate-btn" class="btn btn-calculate">Calcular Iluminación</button>
+            </div>
+            
+            <div class="results-card">
+                <h2 class="card-title"><i>📊</i> Resultados del Cálculo</h2>
+                
+                <div class="results-container" id="results-container">
+                    <div class="result-item">
+                        <div class="result-label">Área de la Habitación</div>
+                        <div class="result-value" id="area-result">0 m²</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-label">Nivel de Iluminación Recomendado</div>
+                        <div class="result-value" id="illuminance-result">0 lux</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-label">Flujo Luminoso Total Necesario</div>
+                        <div class="result-value" id="total-lumens-result">0 lm</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-label">Número de Luminarias Necesarias</div>
+                        <div class="result-value" id="luminaires-result">0</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-label">Distancia entre Luminarias</div>
+                        <div class="result-value" id="spacing-result">0 m</div>
+                    </div>
+                    
+                    <div class="recommendation">
+                        <div class="info-title">Recomendación</div>
+                        <p id="recommendation-text">Complete el formulario y haga clic en "Calcular Iluminación" para obtener recomendaciones personalizadas.</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-title">Notas Técnicas</div>
+                        <p>Este cálculo utiliza el método de lúmenes, considerando factores de mantenimiento y utilización. Los resultados son una estimación profesional.</p>
+                    </div>
+                </div>
+                
+                <div id="no-results" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">💡</div>
+                    <h3>Complete el formulario</h3>
+                    <p>Ingrese los datos de su espacio y haga clic en "Calcular Iluminación" para ver los resultados.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 ElectroPlus - Calculadora Luminotécnica Profesional</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roomTypeSelect = document.getElementById('room-type');
+            const roomLengthInput = document.getElementById('room-length');
+            const roomWidthInput = document.getElementById('room-width');
+            const roomHeightInput = document.getElementById('room-height');
+            const workPlaneInput = document.getElementById('work-plane');
+            const reflectanceSelect = document.getElementById('reflectance');
+            const customLumensInput = document.getElementById('custom-lumens');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resultsContainer = document.getElementById('results-container');
+            const noResults = document.getElementById('no-results');
+            
+            const luminaireCards = document.querySelectorAll('.luminaire-card');
+            let selectedLuminaire = null;
+            
+            // Niveles de iluminación recomendados por tipo de espacio (en lux)
+            const illuminanceLevels = {
+                'living': 150,
+                'bedroom': 100,
+                'kitchen': 300,
+                'bathroom': 200,
+                'office': 500,
+                'commercial': 750,
+                'industrial': 300,
+                'corridor': 100,
+                'custom': 200
+            };
+            
+            // Seleccionar luminaria
+            luminaireCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    luminaireCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedLuminaire = this.getAttribute('data-lm');
+                    customLumensInput.value = '';
+                });
+            });
+            
+            // Usar lúmenes personalizados
+            customLumensInput.addEventListener('input', function() {
+                if (this.value) {
+                    luminaireCards.forEach(c => c.classList.remove('selected'));
+                    selectedLuminaire = null;
+                }
+            });
+            
+            // Calcular iluminación
+            calculateBtn.addEventListener('click', function() {
+                // Validar entradas
+                if (!validateInputs()) return;
+                
+                // Obtener valores
+                const roomType = roomTypeSelect.value;
+                const length = parseFloat(roomLengthInput.value);
+                const width = parseFloat(roomWidthInput.value);
+                const height = parseFloat(roomHeightInput.value);
+                const workPlane = parseFloat(workPlaneInput.value);
+                const reflectance = parseFloat(reflectanceSelect.value);
+                
+                // Determinar lúmenes por luminaria
+                let lumensPerLuminaire;
+                if (selectedLuminaire) {
+                    lumensPerLuminaire = parseInt(selectedLuminaire);
+                } else if (customLumensInput.value) {
+                    lumensPerLuminaire = parseInt(customLumensInput.value);
+                } else {
+                    // Valor por defecto
+                    lumensPerLuminaire = 800;
+                }
+                
+                // Realizar cálculos
+                const area = length * width;
+                const illuminance = illuminanceLevels[roomType] || 200;
+                const totalLumens = calculateTotalLumens(area, illuminance, reflectance);
+                const numLuminaires = Math.ceil(totalLumens / lumensPerLuminaire);
+                const spacing = calculateOptimalSpacing(length, width, numLuminaires);
+                
+                // Mostrar resultados
+                displayResults(area, illuminance, totalLumens, numLuminaires, spacing, roomType);
+            });
+            
+            function validateInputs() {
+                if (!roomTypeSelect.value) {
+                    alert('Por favor, seleccione el tipo de espacio.');
+                    return false;
+                }
+                
+                if (!roomLengthInput.value || roomLengthInput.value <= 0) {
+                    alert('Por favor, ingrese una longitud válida.');
+                    roomLengthInput.focus();
+                    return false;
+                }
+                
+                if (!roomWidthInput.value || roomWidthInput.value <= 0) {
+                    alert('Por favor, ingrese un ancho válido.');
+                    roomWidthInput.focus();
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            function calculateTotalLumens(area, illuminance, reflectance) {
+                // Factor de utilización (depende de la reflectancia y forma de la habitación)
+                const utilizationFactor = 0.6 * reflectance;
+                
+                // Factor de mantenimiento (considera depreciación y suciedad)
+                const maintenanceFactor = 0.8;
+                
+                // Cálculo del flujo luminoso total necesario
+                return (area * illuminance) / (utilizationFactor * maintenanceFactor);
+            }
+            
+            function calculateOptimalSpacing(length, width, numLuminaires) {
+                // Calcular espaciado óptimo basado en el área y número de luminarias
+                const area = length * width;
+                const spacing = Math.sqrt(area / numLuminaires);
+                return Math.min(spacing, Math.min(length, width));
+            }
+            
+            function displayResults(area, illuminance, totalLumens, numLuminaires, spacing, roomType) {
+                // Mostrar contenedor de resultados
+                resultsContainer.style.display = 'block';
+                noResults.style.display = 'none';
+                
+                // Actualizar valores
+                document.getElementById('area-result').textContent = area.toFixed(2) + ' m²';
+                document.getElementById('illuminance-result').textContent = illuminance + ' lux';
+                document.getElementById('total-lumens-result').textContent = Math.round(totalLumens) + ' lm';
+                document.getElementById('luminaires-result').textContent = numLuminaires;
+                document.getElementById('spacing-result').textContent = spacing.toFixed(2) + ' m';
+                
+                // Generar recomendación
+                let recommendation = '';
+                if (roomType === 'living') {
+                    recommendation = 'Para una sala de estar, considere usar una combinación de iluminación general con puntos de luz focalizados en áreas de lectura o decoración.';
+                } else if (roomType === 'bedroom') {
+                    recommendation = 'En dormitorios, es recomendable usar iluminación suave con regulación de intensidad. Considere lámparas de mesita para lectura.';
+                } else if (roomType === 'kitchen') {
+                    recommendation = 'En cocinas, asegúrese de tener buena iluminación en las áreas de trabajo. Iluminación bajo muebles superiores es muy útil.';
+                } else if (roomType === 'office') {
+                    recommendation = 'Para oficinas, priorice la iluminación uniforme sin deslumbramientos. Considere luminarias con difusores para mayor confort visual.';
+                } else if (roomType === 'commercial') {
+                    recommendation = 'En locales comerciales, la iluminación debe realzar los productos. Considere focos direccionales para áreas de exposición.';
+                } else {
+                    recommendation = 'Distribuya las luminarias de forma uniforme en el espacio. Considere iluminación adicional en áreas de trabajo específicas.';
+                }
+                
+                document.getElementById('recommendation-text').textContent = recommendation;
+            }
+            
+            // Establecer valores por defecto según el tipo de espacio seleccionado
+            roomTypeSelect.addEventListener('change', function() {
+                const roomType = this.value;
+                
+                // Establecer nivel de iluminación recomendado como valor por defecto
+                if (roomType && illuminanceLevels[roomType]) {
+                    // Podríamos mostrar esta información al usuario
+                }
+            });
+        });
+    </script>
+</body>
+</html>
