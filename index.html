@@ -50,7 +50,6 @@
         .logo img {
             width: 50%;
         }
-        
         .logo h1 {
             font-size: 1.8rem;
             margin-left: 10px;
@@ -61,30 +60,78 @@
             color: #f1c40f;
         }
         
-        nav ul {
+        /* Navegación para escritorio */
+        .desktop-nav ul {
             display: flex;
             list-style: none;
         }
         
-        nav ul li {
+        .desktop-nav ul li {
             margin-left: 20px;
         }
         
-        nav ul li a {
+        .desktop-nav ul li a {
             color: #045789;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
         }
         
-        nav ul li a:hover {
+        .desktop-nav ul li a:hover {
             color: #f1c40f;
         }
         
-        .mobile-menu {
+        /* Menú móvil */
+        .mobile-menu-btn {
             display: none;
-            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: #045789;
+            font-size: 1.8rem;
             cursor: pointer;
+            padding: 5px;
+
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #2c3e50;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            z-index: 99;
+        }
+        
+        .mobile-nav.active {
+            display: block;
+        }
+        
+        .mobile-nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .mobile-nav ul li {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .mobile-nav ul li:last-child {
+            border-bottom: none;
+        }
+        
+        .mobile-nav ul li a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .mobile-nav ul li a:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #f1c40f;
         }
         
         /* Hero Section */
@@ -395,28 +442,15 @@
         /* Responsive */
         @media (max-width: 768px) {
             .header-container {
-                flex-direction: column;
-                text-align: center;
+                position: relative;
             }
             
-            .logo {
-                margin-bottom: 15px;
+            .desktop-nav {
+                display: none;
             }
             
-            nav ul {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            nav ul li {
-                margin: 10px 0;
-            }
-            
-            .mobile-menu {
+            .mobile-menu-btn {
                 display: block;
-                position: absolute;
-                top: 20px;
-                right: 20px;
             }
             
             .about-content {
@@ -442,18 +476,33 @@
                 <img src="img/logo constru.jpg">
                 <h1></h1>
             </div>
-            <nav>
+            
+            <!-- Navegación para escritorio -->
+            <nav class="desktop-nav">
                 <ul>
                     <li><a href="#inicio">Inicio</a></li>
                     <li><a href="#servicios">Servicios</a></li>
                     <li><a href="#nosotros">Nosotros</a></li>
                     <li><a href="#proyectos">Proyectos</a></li>
                     <li><a href="#contacto">Contacto</a></li>
-                    <!-- NUEVO ENLACE AÑADIDO -->
-                    <li><a href="luminotecnia.html">estudio luminotecnico</a></li>
+                    <li><a href="luminotecnia.html">Calculo Luminotecnico</a></li>
                 </ul>
             </nav>
-            <div class="mobile-menu">☰</div>
+            
+            <!-- Botón del menú móvil -->
+            <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+            
+            <!-- Navegación para móvil -->
+            <nav class="mobile-nav" id="mobile-nav">
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#proyectos">Proyectos</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <li><a href="luminotecnia.html">Calculo Luminotecnico</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
@@ -462,7 +511,7 @@
         <div class="container">
             <h2>Soluciones Eléctricas Profesionales</h2>
             <p>Expertos en instalaciones eléctricas residenciales, comerciales, industriales y cableado estructurado. Garantía de calidad y seguridad en cada proyecto.</p>
-            <a href="#contacto" class="btn">Solicitar un presupuesto</a>
+            <a href="#contacto" class="btn">Solicitar Presupuesto</a>
         </div>
     </section>
 
@@ -534,7 +583,7 @@
                     <p>Nuestra filosofía se basa en la transparencia, el trabajo bien hecho y la atención personalizada a cada cliente, adaptándonos a sus necesidades específicas y presupuesto.</p>
                 </div>
                 <div class="about-image">
-                    <img src="img/operario_tablero.jpg" alt="Electricista trabajando">
+                    <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Electricista trabajando">
                 </div>
             </div>
         </div>
@@ -548,21 +597,21 @@
             </div>
             <div class="projects-grid">
                 <div class="project-card">
-                    <img src="img/luces.jpg" alt="Proyecto residencial">
+                    <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Proyecto residencial">
                     <div class="project-info">
                         <h3>Instalación Residencial Completa</h3>
                         <p>Vivienda unifamiliar con sistema domótico integrado</p>
                     </div>
                 </div>
                 <div class="project-card">
-                    <img src="img/residencial.jpg" alt="Proyecto comercial">
+                    <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Proyecto comercial">
                     <div class="project-info">
                         <h3>Oficinas Corporativas</h3>
                         <p>Sistema eléctrico para edificio de 5 plantas</p>
                     </div>
                 </div>
                 <div class="project-card">
-                    <img src="img/tab_3barras.jpg" alt="Proyecto industrial">
+                    <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Proyecto industrial">
                     <div class="project-info">
                         <h3>Planta Industrial</h3>
                         <p>Instalación eléctrica y automatización para fábrica</p>
@@ -651,7 +700,7 @@
         <div class="container">
             <div class="footer-container">
                 <div class="footer-logo">
-                    <h3>ElectroPlus</h3>
+                    <h3>ConsTruelec</h3>
                     <p>Expertos en instalaciones eléctricas con más de 15 años de experiencia. Calidad, seguridad y profesionalidad garantizadas.</p>
                 </div>
                 <div class="footer-links">
@@ -662,8 +711,7 @@
                         <li><a href="#nosotros">Nosotros</a></li>
                         <li><a href="#proyectos">Proyectos</a></li>
                         <li><a href="#contacto">Contacto</a></li>
-                        <!-- NUEVO ENLACE TAMBIÉN EN EL FOOTER -->
-                        <li><a href="certificaciones.html">Certificaciones</a></li>
+                        <li><a href="luminotecnia.html">estudio luminotecnico</a></li>
                     </ul>
                 </div>
                 <div class="footer-services">
@@ -678,45 +726,72 @@
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 ElectroPlus - Todos los derechos reservados</p>
+                <p>&copy; ConsTruelec 2025 - Todos los derechos reservados</p>
             </div>
         </div>
     </footer>
 
     <script>
         // Menú móvil
-        document.querySelector('.mobile-menu').addEventListener('click', function() {
-            document.querySelector('nav ul').classList.toggle('active');
-        });
-
-        // Smooth scroll para enlaces internos
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileNav = document.getElementById('mobile-nav');
+            
+            // Alternar menú móvil
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileNav.classList.toggle('active');
                 
-                const targetId = this.getAttribute('href');
-                if(targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if(targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                    
-                    // Cerrar menú móvil si está abierto
-                    document.querySelector('nav ul').classList.remove('active');
+                // Cambiar icono del botón
+                if (mobileNav.classList.contains('active')) {
+                    mobileMenuBtn.textContent = '✕';
+                } else {
+                    mobileMenuBtn.textContent = '☰';
                 }
             });
-        });
-
-        // Manejo del formulario de contacto
-        document.getElementById('form-contacto').addEventListener('submit', function(e) {
-            e.preventDefault();
             
-            // Aquí normalmente enviaríamos los datos al servidor
-            alert('¡Gracias por su mensaje! Nos pondremos en contacto con usted pronto.');
-            this.reset();
+            // Cerrar menú al hacer clic en un enlace
+            const mobileLinks = mobileNav.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    mobileMenuBtn.textContent = '☰';
+                });
+            });
+            
+            // Cerrar menú al hacer clic fuera de él
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.header-container')) {
+                    mobileNav.classList.remove('active');
+                    mobileMenuBtn.textContent = '☰';
+                }
+            });
+            
+            // Smooth scroll para enlaces internos
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if(targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if(targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Manejo del formulario de contacto
+            document.getElementById('form-contacto').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Aquí normalmente enviaríamos los datos al servidor
+                alert('¡Gracias por su mensaje! Nos pondremos en contacto con usted pronto.');
+                this.reset();
+            });
         });
     </script>
 </body>
