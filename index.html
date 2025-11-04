@@ -512,8 +512,10 @@
             <h2>Soluciones Eléctricas Profesionales</h2>
             <p>Expertos en instalaciones eléctricas residenciales, comerciales, industriales y cableado estructurado. Garantía de calidad y seguridad en cada proyecto.</p>
             <a href="#contacto" class="btn">Solicitar Presupuesto</a>
-            <p><br>O tal vez algo mas rapido</p>
-            <a href="cotizaciones.html" class="btn">Cotizador en linea</a>
+            <p><br>Consulta por Whatsapp</p>
+            <button onclick="cotizar('instalación electrica')" class="btn">
+            <i data-feather='message-circle' class='mr-2'></i>WhatsApp
+            </button>
         </div>
     </section>
 
@@ -795,6 +797,13 @@
                 this.reset();
             });
         });
+
+        function cotizar(producto) {
+      const numero = "59167003901"; // 🔹 Cambia esto por tu número (ejemplo: 5917XXXXXXX)
+      const mensaje = `Hola 👋, requiero una visita tecnica *${producto}*`;
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, "_blank");
+    }
     </script>
 </body>
 </html>
