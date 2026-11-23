@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Inventario Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0265d2',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for desktop tables */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Shake animation for invalid password */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- LOGIN LOCK SCREEN OVERLAY -->
+    <div id="auth-gate" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
+        <div id="login-card" class="bg-white rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md overflow-hidden transform transition-all p-6 sm:p-8 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="inline-flex p-3 bg-brand-50 text-brand-600 rounded-2xl mb-2 shadow-inner">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">Acceso Restringido</h2>
+                <p class="text-xs text-slate-500">Ingresa tu contraseña para acceder al inventario</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Contraseña</label>
+                    <div class="relative">
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <button type="button" onclick="togglePasswordVisibility('login-password', 'toggle-login-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <svg id="toggle-login-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="login-error" class="hidden text-xs text-rose-600 font-medium mt-1 flex items-center">
+                        <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Contraseña incorrecta. Inténtalo de nuevo.</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="pt-4 border-t border-slate-100 text-center">
+                <p class="text-[11px] text-slate-400">Contraseña inicial por defecto: <span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">admin1234</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- App Title / Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-brand-600 rounded-lg text-white shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight tracking-wide">StockMaster <span class="text-xs text-brand-500 font-normal px-2 py-0.5 bg-brand-500/10 rounded-full border border-brand-500/20">v2.5</span></h1>
+                        <p class="text-xs text-slate-400">Sistema de Control e Inventario</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs & Primary Action -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <nav class="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
+                        <button id="tab-inventory" onclick="switchTab('inventory')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow">
+                            <span class="flex items-center space-x-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                <span>Productos</span>
+                            </span>
+                        </button>
+                        <button id="tab-movements" onclick="switchTab('movements')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white">
+                            <span class="flex items-center space-x-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                                <span>Movimientos</span>
+                                <span id="movements-badge" class="ml-1 px-1.5 py-0.2 bg-slate-700 text-slate-300 text-[10px] rounded-full">0</span>
+                            </span>
+                        </button>
+                    </nav>
+
+                    <button onclick="openAddProductModal()" class="inline-flex items-center px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                        <span class="sm:hidden">Nuevo</span>
+                    </button>
+
+                    <!-- Security & Lock Actions -->
+                    <div class="flex items-center space-x-1 pl-2 border-l border-slate-800">
+                        <button onclick="openChangePasswordModal()" title="Cambiar Contraseña" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path></svg>
+                        </button>
+                        <button onclick="lockApp()" title="Bloquear / Cerrar Sesión" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- KPI Executive Dashboard Panel -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <!-- Card 1: Total Products -->
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Productos</p>
+                        <h3 id="kpi-total-products" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-2 flex items-center">
+                    <span id="kpi-total-units" class="font-medium text-slate-700 mr-1">0</span> unidades totales
+                </p>
+            </div>
+
+            <!-- Card 2: Total Valuation -->
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor Inventario</p>
+                        <h3 id="kpi-total-value" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-2">Valor acumulado actual</p>
+            </div>
+
+            <!-- Card 3: Low Stock Warning -->
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock Bajo</p>
+                        <h3 id="kpi-low-stock" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                </div>
+                <p class="text-xs text-amber-700/80 mt-2 font-medium">Requiere reabastecimiento</p>
+            </div>
+
+            <!-- Card 4: Out of Stock Alert -->
+            <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Agotados</p>
+                        <h3 id="kpi-out-of-stock" class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-1">0</h3>
+                    </div>
+                    <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                    </div>
+                </div>
+                <p class="text-xs text-rose-600 mt-2 font-medium">Sin existencias disponibles</p>
+            </div>
+        </section>
+
+        <!-- VIEW 1: PRODUCTS INVENTORY TABLE VIEW -->
+        <div id="view-inventory" class="space-y-4">
+            
+            <!-- Toolbar: Search, Filters, Quick Actions -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                
+                <!-- Search & Filters -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                    <!-- Real-time Search Input -->
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="text" id="search-input" oninput="renderInventoryTable()" placeholder="Buscar por código SKU, nombre..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                    </div>
+
+                    <!-- Category Filter Dropdown -->
+                    <select id="filter-category" onchange="renderInventoryTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="">Todas las Categorías</option>
+                    </select>
+
+                    <!-- Stock Status Filter -->
+                    <select id="filter-status" onchange="renderInventoryTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                        <option value="">Todos los Estados</option>
+                        <option value="ok">Disponible</option>
+                        <option value="low">Stock Bajo</option>
+                        <option value="out">Agotado</option>
+                    </select>
+
+                    <!-- Reset Filters Button -->
+                    <button onclick="clearFilters()" title="Limpiar Filtros" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition border border-transparent hover:border-slate-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Secondary Actions: Quick Movement, CSV Export & Reset Demo -->
+                <div class="flex items-center space-x-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 justify-end">
+                    <button onclick="openQuickMovementModal()" class="px-3 py-2 text-xs sm:text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition inline-flex items-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        Movimiento Rápido
+                    </button>
+                    
+                    <button onclick="exportToCSV()" class="px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition inline-flex items-center shadow-xs">
+                        <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Exportar CSV
+                    </button>
+
+                    <button onclick="confirmResetData()" title="Recargar datos de prueba iniciales" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition border border-slate-200" text-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Products Table Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th class="py-3 px-4 cursor-pointer hover:text-slate-800" onclick="sortTable('sku')">
+                                    <div class="flex items-center space-x-1"><span>SKU / Código</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
+                                </th>
+                                <th class="py-3 px-4 cursor-pointer hover:text-slate-800" onclick="sortTable('name')">
+                                    <div class="flex items-center space-x-1"><span>Producto</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
+                                </th>
+                                <th class="py-3 px-4">Categoría</th>
+                                <th class="py-3 px-4 text-center cursor-pointer hover:text-slate-800" onclick="sortTable('stock')">
+                                    <div class="flex items-center justify-center space-x-1"><span>Stock</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
+                                </th>
+                                <th class="py-3 px-4 text-center">Estado</th>
+                                <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-800" onclick="sortTable('price')">Precio Unit.</th>
+                                <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-800" onclick="sortTable('totalVal')">Valor Total</th>
+                                <th class="py-3 px-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic Content Rendered Here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer / Stats Summary -->
+                <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+                    <div id="table-summary-count">Mostrando 0 productos</div>
+                    <div class="flex items-center space-x-4">
+                        <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Disponible</span>
+                        <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span> Stock Bajo</span>
+                        <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span> Agotado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: MOVEMENT HISTORY LOG -->
+        <div id="view-movements" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">Historial de Movimientos de Stock</h2>
+                    <p class="text-xs text-slate-500">Registro detallado de entradas, salidas y ajustes manuales.</p>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <!-- Movement Type Filter -->
+                    <select id="filter-mov-type" onchange="renderMovementsTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">Todos los Tipos</option>
+                        <option value="entrada">Entradas (+)</option>
+                        <option value="salida">Salidas (-)</option>
+                        <option value="ajuste">Ajustes manuales</option>
+                    </select>
+
+                    <button onclick="confirmClearHistory()" class="px-3 py-1.5 text-xs text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition font-medium">
+                        Limpiar Historial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Movements Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                <th class="py-3 px-4">Fecha y Hora</th>
+                                <th class="py-3 px-4">Tipo</th>
+                                <th class="py-3 px-4">Producto</th>
+                                <th class="py-3 px-4 text-center">Cantidad</th>
+                                <th class="py-3 px-4 text-center">Stock Anterior ➔ Nuevo</th>
+                                <th class="py-3 px-4">Notas / Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movements-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <p>© 2026 StockMaster - Plataforma de Gestión de Inventario</p>
+            <p class="flex items-center space-x-2">
+                <span>Guardado automático activado (LocalStorage)</span>
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block"></span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: ADD / EDIT PRODUCT -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg transform transition-all overflow-hidden my-8">
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <h3 id="modal-product-title" class="text-base font-bold">Agregar Nuevo Producto</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="product-form" onsubmit="handleProductSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="prod-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- SKU Code -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Código / SKU <span class="text-rose-500">*</span></label>
+                        <input type="text" id="prod-sku" required placeholder="Ej: TEC-001" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Categoría <span class="text-rose-500">*</span></label>
+                        <input type="text" id="prod-category" required list="category-suggestions" placeholder="Ej: Redes, Seguridad" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <datalist id="category-suggestions"></datalist>
+                    </div>
+                </div>
+
+                <!-- Product Name -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre del Producto <span class="text-rose-500">*</span></label>
+                    <input type="text" id="prod-name" required placeholder="Ej: Router Wi-Fi 6 Mesh Dual Band" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Current Stock -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Stock Actual <span class="text-rose-500">*</span></label>
+                        <input type="number" id="prod-stock" min="0" step="1" required placeholder="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <!-- Min Stock -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Stock Mínimo <span class="text-rose-500">*</span></label>
+                        <input type="number" id="prod-min-stock" min="0" step="1" required placeholder="5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <!-- Unit Price -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Precio Unit. ($) <span class="text-rose-500">*</span></label>
+                        <input type="number" id="prod-price" min="0" step="0.01" required placeholder="0.00" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Location -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ubicación en Almacén</label>
+                        <input type="text" id="prod-location" placeholder="Ej: Estante A1, Depósito 2" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <!-- Supplier -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Proveedor / Distribuidor</label>
+                        <input type="text" id="prod-supplier" placeholder="Ej: TechDistribuidor S.A." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 rounded-lg shadow-sm transition">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: QUICK STOCK MOVEMENT (ENTRADA / SALIDA) -->
+    <div id="movement-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="text-base font-bold">Registrar Movimiento de Stock</h3>
+                <button onclick="closeMovementModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form id="movement-form" onsubmit="handleMovementSubmit(event)" class="p-6 space-y-4">
+                <!-- Select Product -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Producto <span class="text-rose-500">*</span></label>
+                    <select id="mov-product-id" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+
+                <!-- Movement Type (Entrada vs Salida) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tipo de Movimiento <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center justify-center p-3 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 font-medium text-sm text-slate-700 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-700 transition">
+                            <input type="radio" name="mov-type" value="entrada" checked class="sr-only">
+                            <svg class="w-4 h-4 mr-1.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Entrada (+ Stock)
+                        </label>
+                        <label class="flex items-center justify-center p-3 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 font-medium text-sm text-slate-700 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50 has-[:checked]:text-rose-700 transition">
+                            <input type="radio" name="mov-type" value="salida" class="sr-only">
+                            <svg class="w-4 h-4 mr-1.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                            Salida (- Stock)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Cantidad <span class="text-rose-500">*</span></label>
+                    <input type="number" id="mov-quantity" min="1" step="1" required placeholder="Unidades" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <!-- Notes / Reason -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Notas / Motivo</label>
+                    <input type="text" id="mov-notes" placeholder="Ej: Compra proveedor, Venta orden #402..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeMovementModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition">Registrar Movimiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CONFIRMATION DIALOG (FOR DELETE / RESET) -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden p-6 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div id="confirm-icon-bg" class="p-3 bg-rose-100 text-rose-600 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                    <h3 id="confirm-title" class="text-base font-bold text-slate-900">¿Estás seguro?</h3>
+                    <p id="confirm-message" class="text-xs text-slate-500 mt-0.5">Esta acción no se puede deshacer.</p>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+                <button id="confirm-action-btn" type="button" class="px-5 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-500 rounded-lg shadow-sm transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CHANGE PASSWORD -->
+    <div id="change-pwd-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="text-base font-bold">Cambiar Contraseña</h3>
+                <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form id="change-pwd-form" onsubmit="handleChangePasswordSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Contraseña Actual <span class="text-rose-500">*</span></label>
+                    <input type="password" id="pwd-current" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nueva Contraseña <span class="text-rose-500">*</span></label>
+                    <input type="password" id="pwd-new" required minlength="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Confirmar Nueva Contraseña <span class="text-rose-500">*</span></label>
+                    <input type="password" id="pwd-confirm" required minlength="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 rounded-lg shadow-sm transition">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // INITIAL SAMPLE DATA (8 Realistic Electronics / Tech / Hardware items)
+        const INITIAL_PRODUCTS = [
+            { id: "prod_1", sku: "NET-101", name: "Router Wi-Fi 6 Mesh Dual Band AX3000", category: "Redes", stock: 18, minStock: 5, price: 89.50, location: "Estante A-1", supplier: "TechGlobal S.A." },
+            { id: "prod_2", sku: "SEC-204", name: "Cámara IP Exterior 4K Visión Nocturna", category: "Seguridad", stock: 3, minStock: 5, price: 65.00, location: "Estante B-2", supplier: "Securitas Tech" },
+            { id: "prod_3", sku: "CAB-050", name: "Bobina Cable UTP Cat6 305m Exterior", category: "Redes", stock: 0, minStock: 2, price: 120.00, location: "Depósito C", supplier: "TechGlobal S.A." },
+            { id: "prod_4", sku: "FER-882", name: "Kit Herramientas Crimpado + Tester RJ45", category: "Ferretería", stock: 12, minStock: 3, price: 45.90, location: "Estante A-3", supplier: "Herramientas Industrial" },
+            { id: "prod_5", sku: "TEC-309", name: "Switch Gigabit 16 Puertos PoE+ Managed", category: "Redes", stock: 7, minStock: 4, price: 185.00, location: "Rack R-2", supplier: "TechGlobal S.A." },
+            { id: "prod_6", sku: "SEC-108", name: "Disco Duro Surveillance 4TB SATA3", category: "Almacenamiento", stock: 2, minStock: 4, price: 98.00, location: "Estante B-1", supplier: "Storage Direct" },
+            { id: "prod_7", sku: "ACC-015", name: "UPS Servidor Online 1500VA / 900W", category: "Energía", stock: 9, minStock: 2, price: 240.00, location: "Depósito A", supplier: "PowerCorp" },
+            { id: "prod_8", sku: "ILU-402", name: "Reflector LED Solar 100W IP67 Control", category: "Iluminación", stock: 25, minStock: 6, price: 34.50, location: "Estante D-4", supplier: "ElectroLuz" }
+        ];
+
+        const INITIAL_MOVEMENTS = [
+            { id: "mov_1", productId: "prod_1", sku: "NET-101", productName: "Router Wi-Fi 6 Mesh Dual Band AX3000", type: "entrada", quantity: 20, previousStock: 0, newStock: 20, notes: "Inventario inicial de apertura", timestamp: new Date(Date.now() - 86400000 * 3).toISOString() },
+            { id: "mov_2", productId: "prod_2", sku: "SEC-204", productName: "Cámara IP Exterior 4K Visión Nocturna", type: "salida", quantity: 2, previousStock: 5, newStock: 3, notes: "Despacho a cliente Orden #1042", timestamp: new Date(Date.now() - 86400000 * 1).toISOString() }
+        ];
+
+        // State Management
+        let products = [];
+        let movements = [];
+        let sortColumn = 'name';
+        let sortAsc = true;
+
+        // Default SHA-256 hash for "admin1234"
+        const DEFAULT_PWD_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+
+        // Helper: Hash string with SHA-256
+        async function hashPassword(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Authentication & Lock Screen Controls
+        function checkAuth() {
+            const isAuth = sessionStorage.getItem('stockmaster_authenticated') === 'true';
+            const authGate = document.getElementById('auth-gate');
+            if (isAuth) {
+                authGate.classList.add('hidden');
+            } else {
+                authGate.classList.remove('hidden');
+                document.getElementById('login-password').value = '';
+                document.getElementById('login-error').classList.add('hidden');
+            }
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const passwordInput = document.getElementById('login-password');
+            const errorDiv = document.getElementById('login-error');
+            const loginCard = document.getElementById('login-card');
+            
+            const inputHash = await hashPassword(passwordInput.value);
+            const storedHash = localStorage.getItem('stockmaster_pwd_hash') || DEFAULT_PWD_HASH;
+
+            if (inputHash === storedHash) {
+                sessionStorage.setItem('stockmaster_authenticated', 'true');
+                errorDiv.classList.add('hidden');
+                checkAuth();
+                showToast("Acceso concedido. Bienvenid@ a StockMaster", "success");
+            } else {
+                errorDiv.classList.remove('hidden');
+                loginCard.classList.remove('animate-shake');
+                void loginCard.offsetWidth; // Trigger reflow
+                loginCard.classList.add('animate-shake');
+                passwordInput.select();
+            }
+        }
+
+        function lockApp() {
+            sessionStorage.removeItem('stockmaster_authenticated');
+            checkAuth();
+            showToast("Sesión bloqueada correctamente.", "info");
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.025 10.025 0 0110.122 1.937C21.268 9.057 21.268 14.943 20 19m-4.5-4.5a3 3 0 11-4.243-4.243"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"></path>`;
+            } else {
+                input.type = 'password';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>`;
+            }
+        }
+
+        // Change Password Modal logic
+        function openChangePasswordModal() {
+            document.getElementById('change-pwd-form').reset();
+            document.getElementById('change-pwd-modal').classList.remove('hidden');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('change-pwd-modal').classList.add('hidden');
+        }
+
+        async function handleChangePasswordSubmit(event) {
+            event.preventDefault();
+            const currentPwd = document.getElementById('pwd-current').value;
+            const newPwd = document.getElementById('pwd-new').value;
+            const confirmPwd = document.getElementById('pwd-confirm').value;
+
+            const currentHash = await hashPassword(currentPwd);
+            const storedHash = localStorage.getItem('stockmaster_pwd_hash') || DEFAULT_PWD_HASH;
+
+            if (currentHash !== storedHash) {
+                showToast("La contraseña actual es incorrecta.", "warning");
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                showToast("La nueva contraseña y la confirmación no coinciden.", "warning");
+                return;
+            }
+
+            const newHash = await hashPassword(newPwd);
+            localStorage.setItem('stockmaster_pwd_hash', newHash);
+            closeChangePasswordModal();
+            showToast("Contraseña actualizada con éxito.", "success");
+        }
+
+        // Initialize App on DOM Loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadState();
+            renderCategoryOptions();
+            renderInventoryTable();
+            renderMovementsTable();
+            updateKPIs();
+        });
+
+        // Load State from LocalStorage or Defaults
+        function loadState() {
+            const savedProducts = localStorage.getItem('stockmaster_products');
+            const savedMovements = localStorage.getItem('stockmaster_movements');
+
+            if (savedProducts) {
+                try {
+                    products = JSON.parse(savedProducts);
+                } catch(e) {
+                    products = [...INITIAL_PRODUCTS];
+                }
+            } else {
+                products = [...INITIAL_PRODUCTS];
+            }
+
+            if (savedMovements) {
+                try {
+                    movements = JSON.parse(savedMovements);
+                } catch(e) {
+                    movements = [...INITIAL_MOVEMENTS];
+                }
+            } else {
+                movements = [...INITIAL_MOVEMENTS];
+            }
+
+            saveState();
+        }
+
+        // Save State to LocalStorage
+        function saveState() {
+            localStorage.setItem('stockmaster_products', JSON.stringify(products));
+            localStorage.setItem('stockmaster_movements', JSON.stringify(movements));
+        }
+
+        // Reset Data to Initial Samples
+        function confirmResetData() {
+            showConfirmModal(
+                "Restablecer Datos de Ejemplo",
+                "¿Deseas reemplazar tu inventario actual por la lista de productos de prueba?",
+                () => {
+                    products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+                    movements = JSON.parse(JSON.stringify(INITIAL_MOVEMENTS));
+                    saveState();
+                    renderCategoryOptions();
+                    renderInventoryTable();
+                    renderMovementsTable();
+                    updateKPIs();
+                    showToast("Inventario restablecido a datos de prueba.", "info");
+                }
+            );
+        }
+
+        // Navigation Tabs Toggle
+        function switchTab(tabName) {
+            const inventoryTabBtn = document.getElementById('tab-inventory');
+            const movementsTabBtn = document.getElementById('tab-movements');
+            const inventoryView = document.getElementById('view-inventory');
+            const movementsView = document.getElementById('view-movements');
+
+            if (tabName === 'inventory') {
+                inventoryView.classList.remove('hidden');
+                movementsView.classList.add('hidden');
+                
+                inventoryTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow";
+                movementsTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white";
+            } else {
+                inventoryView.classList.add('hidden');
+                movementsView.classList.remove('hidden');
+
+                movementsTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow";
+                inventoryTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white";
+                renderMovementsTable();
+            }
+        }
+
+        // Update Dashboard KPIs
+        function updateKPIs() {
+            const totalProducts = products.length;
+            const totalUnits = products.reduce((sum, p) => sum + Number(p.stock), 0);
+            const totalValuation = products.reduce((sum, p) => sum + (Number(p.stock) * Number(p.price)), 0);
+            const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= p.minStock).length;
+            const outOfStockCount = products.filter(p => p.stock === 0).length;
+
+            document.getElementById('kpi-total-products').textContent = totalProducts.toLocaleString('es-ES');
+            document.getElementById('kpi-total-units').textContent = totalUnits.toLocaleString('es-ES');
+            document.getElementById('kpi-total-value').textContent = '$' + totalValuation.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('kpi-low-stock').textContent = lowStockCount;
+            document.getElementById('kpi-out-of-stock').textContent = outOfStockCount;
+            
+            document.getElementById('movements-badge').textContent = movements.length;
+        }
+
+        // Populate Category Filters & DataList Suggestions
+        function renderCategoryOptions() {
+            const categories = [...new Set(products.map(p => p.category))].sort();
+            const filterSelect = document.getElementById('filter-category');
+            const dataList = document.getElementById('category-suggestions');
+
+            const currentSelected = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">Todas las Categorías</option>';
+            dataList.innerHTML = '';
+
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                if (cat === currentSelected) option.selected = true;
+                filterSelect.appendChild(option);
+
+                const dataOption = document.createElement('option');
+                dataOption.value = cat;
+                dataList.appendChild(dataOption);
+            });
+        }
+
+        // Table Filtering & Sorting Engine
+        function getFilteredProducts() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            const categoryFilter = document.getElementById('filter-category').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            return products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery) || p.sku.toLowerCase().includes(searchQuery);
+                const matchesCategory = categoryFilter === '' || p.category === categoryFilter;
+                
+                let matchesStatus = true;
+                if (statusFilter === 'ok') matchesStatus = p.stock > p.minStock;
+                else if (statusFilter === 'low') matchesStatus = p.stock > 0 && p.stock <= p.minStock;
+                else if (statusFilter === 'out') matchesStatus = p.stock === 0;
+
+                return matchesSearch && matchesCategory && matchesStatus;
+            }).sort((a, b) => {
+                let valA = a[sortColumn];
+                let valB = b[sortColumn];
+
+                if (sortColumn === 'totalVal') {
+                    valA = a.stock * a.price;
+                    valB = b.stock * b.price;
+                }
+
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = column;
+                sortAsc = true;
+            }
+            renderInventoryTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-status').value = '';
+            renderInventoryTable();
+        }
+
+        // Render Inventory Table
+        function renderInventoryTable() {
+            const filtered = getFilteredProducts();
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-10 text-slate-400">
+                            <svg class="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <p class="font-medium text-sm text-slate-600">No se encontraron productos</p>
+                            <p class="text-xs text-slate-400 mt-1">Prueba a cambiar la búsqueda o eliminar los filtros aplicados.</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('table-summary-count').textContent = `Mostrando 0 de ${products.length} productos`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const totalValue = p.stock * p.price;
+                
+                // Status Badge styling
+                let statusBadge = '';
+                if (p.stock === 0) {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Agotado</span>`;
+                } else if (p.stock <= p.minStock) {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>Stock Bajo</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Disponible</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition duration-150";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-medium text-xs text-slate-600 whitespace-nowrap">
+                        <span class="px-2 py-1 bg-slate-100 rounded border border-slate-200">${escapeHtml(p.sku)}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="font-semibold text-slate-900">${escapeHtml(p.name)}</div>
+                        <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                            ${p.location ? `<span>📍 ${escapeHtml(p.location)}</span>` : ''}
+                            ${p.supplier ? `<span>🏢 ${escapeHtml(p.supplier)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <span class="inline-block px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-md border border-slate-200">
+                            ${escapeHtml(p.category)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="quickAdjustStock('${p.id}', -1)" title="Disminuir stock en 1" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition font-bold border border-slate-300">
+                                -
+                            </button>
+                            <span class="font-bold text-sm min-w-[2.5rem] text-center ${p.stock === 0 ? 'text-rose-600' : 'text-slate-800'}">
+                                ${p.stock}
+                            </span>
+                            <button onclick="quickAdjustStock('${p.id}', 1)" title="Aumentar stock en 1" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition font-bold border border-slate-300">
+                                +
+                            </button>
+                        </div>
+                        <div class="text-[10px] text-center text-slate-400 mt-0.5">mín: ${p.minStock}</div>
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        ${statusBadge}
+                    </td>
+                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">
+                        $${Number(p.price).toFixed(2)}
+                    </td>
+                    <td class="py-3 px-4 text-right font-bold text-slate-900 whitespace-nowrap">
+                        $${totalValue.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="openEditProductModal('${p.id}')" title="Editar Producto" class="p-1.5 text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="confirmDeleteProduct('${p.id}')" title="Eliminar Producto" class="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('table-summary-count').textContent = `Mostrando ${filtered.length} de ${products.length} productos`;
+        }
+
+        // Quick Direct +/- Buttons Stock Adjustments
+        function quickAdjustStock(productId, delta) {
+            const prod = products.find(p => p.id === productId);
+            if (!prod) return;
+
+            const previousStock = prod.stock;
+            const newStock = previousStock + delta;
+
+            if (newStock < 0) {
+                showToast("El stock no puede ser menor a cero.", "warning");
+                return;
+            }
+
+            prod.stock = newStock;
+
+            // Log Movement
+            const movementType = delta > 0 ? "entrada" : "salida";
+            const newMovement = {
+                id: "mov_" + Date.now(),
+                productId: prod.id,
+                sku: prod.sku,
+                productName: prod.name,
+                type: movementType,
+                quantity: Math.abs(delta),
+                previousStock: previousStock,
+                newStock: newStock,
+                notes: `Ajuste rápido (${delta > 0 ? '+1' : '-1'})`,
+                timestamp: new Date().toISOString()
+            };
+
+            movements.unshift(newMovement);
+            saveState();
+            renderInventoryTable();
+            updateKPIs();
+
+            const actionText = delta > 0 ? `+1 unidad agregada a "${prod.name}"` : `-1 unidad retirada de "${prod.name}"`;
+            showToast(actionText, delta > 0 ? "success" : "info");
+        }
+
+        // Render Movements Log View Table
+        function renderMovementsTable() {
+            const filterType = document.getElementById('filter-mov-type').value;
+            const tbody = document.getElementById('movements-table-body');
+            tbody.innerHTML = '';
+
+            const filteredMovs = movements.filter(m => filterType === '' || m.type === filterType);
+
+            if (filteredMovs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-400">
+                            No se registran movimientos en el historial.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredMovs.forEach(m => {
+                let typeBadge = '';
+                if (m.type === 'entrada') {
+                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Entrada</span>`;
+                } else if (m.type === 'salida') {
+                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>Salida</span>`;
+                } else {
+                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Ajuste</span>`;
+                }
+
+                const dateFormatted = new Date(m.timestamp).toLocaleString('es-ES', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">${dateFormatted}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">${typeBadge}</td>
+                    <td class="py-3 px-4">
+                        <div class="font-semibold text-slate-800 text-xs">${escapeHtml(m.productName)}</div>
+                        <div class="text-[11px] font-mono text-slate-400">SKU: ${escapeHtml(m.sku)}</div>
+                    </td>
+                    <td class="py-3 px-4 text-center font-bold text-slate-800 whitespace-nowrap">
+                        ${m.type === 'salida' ? '-' : '+'}${m.quantity}
+                    </td>
+                    <td class="py-3 px-4 text-center text-xs font-mono text-slate-600 whitespace-nowrap">
+                        ${m.previousStock} <span class="text-slate-400">➔</span> <span class="font-bold text-slate-900">${m.newStock}</span>
+                    </td>
+                    <td class="py-3 px-4 text-xs text-slate-600">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">Sin notas</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function confirmClearHistory() {
+            showConfirmModal(
+                "Limpiar Historial de Movimientos",
+                "¿Deseas eliminar todo el registro de movimientos del sistema?",
+                () => {
+                    movements = [];
+                    saveState();
+                    renderMovementsTable();
+                    updateKPIs();
+                    showToast("Historial de movimientos limpiado.", "info");
+                }
+            );
+        }
+
+        // Product Modal Operations
+        function openAddProductModal() {
+            document.getElementById('modal-product-title').textContent = "Agregar Nuevo Producto";
+            document.getElementById('product-form').reset();
+            document.getElementById('prod-id').value = "";
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function openEditProductModal(productId) {
+            const p = products.find(item => item.id === productId);
+            if (!p) return;
+
+            document.getElementById('modal-product-title').textContent = "Editar Producto";
+            document.getElementById('prod-id').value = p.id;
+            document.getElementById('prod-sku').value = p.sku;
+            document.getElementById('prod-name').value = p.name;
+            document.getElementById('prod-category').value = p.category;
+            document.getElementById('prod-stock').value = p.stock;
+            document.getElementById('prod-min-stock').value = p.minStock;
+            document.getElementById('prod-price').value = p.price;
+            document.getElementById('prod-location').value = p.location || '';
+            document.getElementById('prod-supplier').value = p.supplier || '';
+
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function handleProductSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('prod-id').value;
+            const sku = document.getElementById('prod-sku').value.trim().toUpperCase();
+            const name = document.getElementById('prod-name').value.trim();
+            const category = document.getElementById('prod-category').value.trim();
+            const stock = parseInt(document.getElementById('prod-stock').value, 10);
+            const minStock = parseInt(document.getElementById('prod-min-stock').value, 10);
+            const price = parseFloat(document.getElementById('prod-price').value);
+            const location = document.getElementById('prod-location').value.trim();
+            const supplier = document.getElementById('prod-supplier').value.trim();
+
+            // Check duplicate SKU
+            const existingSku = products.find(p => p.sku === sku && p.id !== id);
+            if (existingSku) {
+                showToast(`El código SKU "${sku}" ya está registrado en otro producto.`, "warning");
+                return;
+            }
+
+            if (id) {
+                // Edit existing product
+                const index = products.findIndex(p => p.id === id);
+                if (index !== -1) {
+                    const prevStock = products[index].stock;
+                    products[index] = { ...products[index], sku, name, category, stock, minStock, price, location, supplier };
+                    
+                    // Log movement if stock changed directly in edit form
+                    if (prevStock !== stock) {
+                        const diff = stock - prevStock;
+                        movements.unshift({
+                            id: "mov_" + Date.now(),
+                            productId: id,
+                            sku: sku,
+                            productName: name,
+                            type: diff > 0 ? "entrada" : "salida",
+                            quantity: Math.abs(diff),
+                            previousStock: prevStock,
+                            newStock: stock,
+                            notes: "Ajuste manual desde edición de producto",
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
+                    showToast("Producto actualizado exitosamente.", "success");
+                }
+            } else {
+                // Add new product
+                const newId = "prod_" + Date.now();
+                const newProd = { id: newId, sku, name, category, stock, minStock, price, location, supplier };
+                products.unshift(newProd);
+
+                // Initial Log
+                movements.unshift({
+                    id: "mov_" + Date.now(),
+                    productId: newId,
+                    sku: sku,
+                    productName: name,
+                    type: "entrada",
+                    quantity: stock,
+                    previousStock: 0,
+                    newStock: stock,
+                    notes: "Alta inicial de producto",
+                    timestamp: new Date().toISOString()
+                });
+
+                showToast("Nuevo producto registrado correctamente.", "success");
+            }
+
+            saveState();
+            renderCategoryOptions();
+            renderInventoryTable();
+            updateKPIs();
+            closeProductModal();
+        }
+
+        // Delete Product
+        function confirmDeleteProduct(productId) {
+            const p = products.find(item => item.id === productId);
+            if (!p) return;
+
+            showConfirmModal(
+                "Eliminar Producto",
+                `¿Deseas eliminar permanentemente el producto "${p.name}" (${p.sku})?`,
+                () => {
+                    products = products.filter(item => item.id !== productId);
+                    saveState();
+                    renderCategoryOptions();
+                    renderInventoryTable();
+                    updateKPIs();
+                    showToast("Producto eliminado del inventario.", "info");
+                }
+            );
+        }
+
+        // Quick Stock Movement Modal Operations
+        function openQuickMovementModal() {
+            const select = document.getElementById('mov-product-id');
+            select.innerHTML = '';
+
+            if (products.length === 0) {
+                showToast("No hay productos disponibles en el inventario.", "warning");
+                return;
+            }
+
+            products.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `[${p.sku}] ${p.name} (Stock actual: ${p.stock})`;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('movement-form').reset();
+            document.getElementById('movement-modal').classList.remove('hidden');
+        }
+
+        function closeMovementModal() {
+            document.getElementById('movement-modal').classList.add('hidden');
+        }
+
+        function handleMovementSubmit(event) {
+            event.preventDefault();
+
+            const productId = document.getElementById('mov-product-id').value;
+            const typeRadios = document.getElementsByName('mov-type');
+            let type = 'entrada';
+            for (const r of typeRadios) {
+                if (r.checked) type = r.value;
+            }
+
+            const qty = parseInt(document.getElementById('mov-quantity').value, 10);
+            const notes = document.getElementById('mov-notes').value.trim();
+
+            const prod = products.find(p => p.id === productId);
+            if (!prod) return;
+
+            const previousStock = prod.stock;
+            let newStock = previousStock;
+
+            if (type === 'salida') {
+                if (qty > previousStock) {
+                    showToast(`No hay suficiente stock disponible. Stock actual: ${previousStock}`, "warning");
+                    return;
+                }
+                newStock = previousStock - qty;
+            } else {
+                newStock = previousStock + qty;
+            }
+
+            prod.stock = newStock;
+
+            movements.unshift({
+                id: "mov_" + Date.now(),
+                productId: prod.id,
+                sku: prod.sku,
+                productName: prod.name,
+                type: type,
+                quantity: qty,
+                previousStock: previousStock,
+                newStock: newStock,
+                notes: notes || (type === 'entrada' ? 'Entrada manual' : 'Salida manual'),
+                timestamp: new Date().toISOString()
+            });
+
+            saveState();
+            renderInventoryTable();
+            updateKPIs();
+            closeMovementModal();
+            showToast(`Movimiento registrado: ${type === 'entrada' ? '+' : '-'}${qty} unidades en "${prod.name}"`, "success");
+        }
+
+        // CSV Export Functionality
+        function exportToCSV() {
+            if (products.length === 0) {
+                showToast("No hay productos para exportar.", "warning");
+                return;
+            }
+
+            const headers = ["SKU", "Nombre", "Categoria", "Stock_Actual", "Stock_Minimo", "Precio_Unitario", "Valor_Total", "Ubicacion", "Proveedor"];
+            const rows = products.map(p => [
+                `"${p.sku.replace(/"/g, '""')}"`,
+                `"${p.name.replace(/"/g, '""')}"`,
+                `"${p.category.replace(/"/g, '""')}"`,
+                p.stock,
+                p.minStock,
+                p.price.toFixed(2),
+                (p.stock * p.price).toFixed(2),
+                `"${(p.location || '').replace(/"/g, '""')}"`,
+                `"${(p.supplier || '').replace(/"/g, '""')}"`
+            ]);
+
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Inventario_StockMaster_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("Archivo CSV exportado exitosamente.", "success");
+        }
+
+        // Custom Confirmation Modal Helper (Replacing browser alert/confirm)
+        let confirmCallback = null;
+
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            confirmCallback = onConfirm;
+
+            const confirmBtn = document.getElementById('confirm-action-btn');
+            confirmBtn.onclick = () => {
+                if (confirmCallback) confirmCallback();
+                closeConfirmModal();
+            };
+
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bgClass = 'bg-slate-900 text-white border-slate-700';
+            let icon = `<svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+
+            if (type === 'success') {
+                bgClass = 'bg-slate-900 text-white border-emerald-500';
+                icon = `<svg class="w-5 h-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else if (type === 'warning') {
+                bgClass = 'bg-slate-900 text-white border-amber-500';
+                icon = `<svg class="w-5 h-5 text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            }
+
+            toast.className = `flex items-center px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transform transition-all duration-300 pointer-events-auto opacity-0 translate-y-2 ${bgClass}`;
+            toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            });
+
+            // Auto dismiss after 3.5s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, 3500);
+        }
+
+        // HTML Sanitizer
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
