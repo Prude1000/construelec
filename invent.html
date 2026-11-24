@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Inventario Pro - Nube</title>
+    <title>Gestión de Inventario Pro - Firebase Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-    <!-- PANTALLA DE BLOQUEO -->
+    <!-- PANTALLA DE BLOQUEO (FIREBASE AUTH NIVEL 2) -->
     <div id="lockScreen" class="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
-                    <i class="fas fa-cloud-lock"></i>
+                    <i class="fas fa-shield-halved"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Acceso Restringido</h2>
-                <p id="lockSubtitle" class="text-sm text-slate-500 mt-1">Sincronizado en la nube • Ingresa tu contraseña</p>
+                <h2 class="text-2xl font-bold text-slate-800">Acceso Seguro</h2>
+                <p class="text-sm text-slate-500 mt-1">Autenticación protegida por Firebase Auth</p>
             </div>
 
             <div id="inactivityAlert" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-center gap-2">
@@ -27,25 +27,29 @@
 
             <form id="loginForm" class="space-y-4">
                 <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo Electrónico</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-3.5 top-3.5 text-slate-400"></i>
+                        <input type="email" id="loginEmail" required placeholder="admin@tuinventario.com"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+                </div>
+                <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
                     <div class="relative">
+                        <i class="fas fa-lock absolute left-3.5 top-3.5 text-slate-400"></i>
                         <input type="password" id="loginPassword" required placeholder="••••••••"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition pr-12">
+                            class="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
                         <button type="button" onclick="togglePwdVisibility('loginPassword', 'eyeLogin')" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600">
                             <i id="eyeLogin" class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
-                <p id="loginError" class="hidden text-red-600 text-xs font-medium"><i class="fas fa-exclamation-circle mr-1"></i> Contraseña incorrecta.</p>
+                <p id="loginError" class="hidden text-red-600 text-xs font-medium bg-red-50 p-2.5 rounded-lg border border-red-200"></p>
                 <button type="submit" id="btnLogin" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
-                    <i class="fas fa-unlock-alt"></i> Desbloquear Inventario
+                    <i class="fas fa-right-to-bracket"></i> Iniciar Sesión
                 </button>
             </form>
-            <div class="mt-4 text-center">
-                <span id="dbStatusBadge" class="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Conectando a Firebase...
-                </span>
-            </div>
         </div>
     </div>
 
@@ -59,9 +63,9 @@
                         <i class="fas fa-boxes-stacked text-lg"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-lg text-slate-800 leading-tight">Inventario Cloud</h1>
-                        <span class="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Sincronizado en tiempo real
+                        <h1 class="font-bold text-lg text-slate-800 leading-tight">Inventario Cloud Pro</h1>
+                        <span id="userEmailBadge" class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Conectado
                         </span>
                     </div>
                 </div>
@@ -72,8 +76,8 @@
                         <span class="hidden sm:inline">Cambiar Contraseña</span>
                     </button>
                     <button onclick="lockSession(false)" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        <i class="fas fa-lock"></i>
-                        <span class="hidden sm:inline">Bloquear</span>
+                        <i class="fas fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Cerrar Sesión</span>
                     </button>
                 </div>
             </div>
@@ -103,14 +107,17 @@
             </div>
 
             <!-- Controles y Filtros -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
-                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1">
-                    <div class="relative flex-1 max-w-md">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-3 justify-between items-center">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto flex-1">
+                    <div class="relative">
                         <i class="fas fa-search absolute left-3.5 top-3 text-slate-400"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar por SKU o nombre..."
+                        <input type="text" id="searchInput" placeholder="Buscar SKU, nombre o ubicación..."
                             class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
-                    <select id="statusFilter" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white outline-none">
+                    <select id="categoryFilter" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">Todas las categorías</option>
+                    </select>
+                    <select id="statusFilter" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="all">Todos los estados</option>
                         <option value="ok">Disponible</option>
                         <option value="low">Stock Bajo</option>
@@ -118,7 +125,7 @@
                     </select>
                 </div>
 
-                <div class="flex gap-2 w-full md:w-auto justify-end">
+                <div class="flex gap-2 w-full lg:w-auto justify-end">
                     <button onclick="exportCSV()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-2">
                         <i class="fas fa-file-csv text-emerald-600"></i> Exportar CSV
                     </button>
@@ -137,6 +144,7 @@
                                 <th class="py-3.5 px-4">SKU</th>
                                 <th class="py-3.5 px-4">Producto</th>
                                 <th class="py-3.5 px-4">Categoría</th>
+                                <th class="py-3.5 px-4">Ubicación</th>
                                 <th class="py-3.5 px-4 text-right">Precio Unit.</th>
                                 <th class="py-3.5 px-4 text-center">Stock</th>
                                 <th class="py-3.5 px-4 text-center">Estado</th>
@@ -144,7 +152,7 @@
                             </tr>
                         </thead>
                         <tbody id="inventoryTableBody" class="divide-y divide-slate-100 text-sm">
-                            <tr><td colspan="7" class="py-8 text-center text-slate-400">Cargando datos desde Firebase...</td></tr>
+                            <tr><td colspan="8" class="py-8 text-center text-slate-400">Cargando inventario...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -153,7 +161,7 @@
             <!-- Historial de Movimientos -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
                 <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-500"></i> Últimos Movimientos en la Nube
+                    <i class="fas fa-history text-indigo-500"></i> Últimos Movimientos
                 </h3>
                 <div id="movementsList" class="space-y-2 max-h-60 overflow-y-auto text-xs text-slate-600">
                     <p class="text-slate-400">Sin movimientos recientes.</p>
@@ -178,12 +186,24 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
-                        <input type="text" id="prodCategory" required placeholder="Seguridad / Redes" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                        <select id="prodCategorySelect" onchange="handleCategoryOptionChange()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white outline-none focus:border-indigo-500">
+                        </select>
                     </div>
+                </div>
+                <div id="customCategoryWrapper" class="hidden">
+                    <label class="block text-xs font-semibold text-indigo-600 mb-1">Nombre de la nueva categoría</label>
+                    <input type="text" id="prodCustomCategory" placeholder="Ej. Control de Acceso" class="w-full px-3 py-2 border border-indigo-300 bg-indigo-50/40 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del Producto</label>
-                    <input type="text" id="prodName" required placeholder="Cámara IP Domo 4MP" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    <input type="text" id="prodName" required placeholder="Cámara IP Domo 4MP Dahua" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Ubicación Física</label>
+                    <div class="relative">
+                        <i class="fas fa-location-dot absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="text" id="prodLocation" required placeholder="Ej. Estante B-3, Bodega Central" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -197,7 +217,7 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg">Guardar en Nube</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg">Guardar Producto</button>
                 </div>
             </form>
         </div>
@@ -208,23 +228,23 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fas fa-key text-amber-500"></i> Cambiar Contraseña Global
+                    <i class="fas fa-key text-amber-500"></i> Cambiar Contraseña de Usuario
                 </h3>
                 <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
-            <p class="text-xs text-slate-500 mb-4">Esta nueva contraseña se actualizará en Firebase para todos tus dispositivos.</p>
+            <p class="text-xs text-slate-500 mb-4">Actualiza tu contraseña directamente en Firebase Authentication.</p>
             <form id="changePwdForm" class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña Actual</label>
                     <input type="password" id="currentPwd" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nueva Contraseña (mín. 4 caracteres)</label>
-                    <input type="password" id="newPwd" minlength="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nueva Contraseña (mín. 6 caracteres)</label>
+                    <input type="password" id="newPwd" minlength="6" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Confirmar Nueva Contraseña</label>
-                    <input type="password" id="confirmPwd" minlength="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    <input type="password" id="confirmPwd" minlength="6" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
                 <p id="pwdModalError" class="hidden text-xs text-red-600 font-medium"></p>
                 <div class="flex justify-end gap-2 pt-2">
@@ -242,72 +262,111 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
-            getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, 
+            getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
+            updatePassword, EmailAuthProvider, reauthenticateWithCredential 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, 
             onSnapshot, query, orderBy, limit, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // =========================================================================
-        // 1. PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
+        // PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
         // =========================================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyA85q7FO0W2skwz_n_g0-_leEma5Q2lCE8",
-  authDomain: "inventarioconstruelec.firebaseapp.com",
-  projectId: "inventarioconstruelec",
-  storageBucket: "inventarioconstruelec.firebasestorage.app",
-  messagingSenderId: "959693297838",
-  appId: "1:959693297838:web:fb77158c01ceea1893f53f",
-  measurementId: "G-VCL25F3468"
-};
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
 
-        // Configuración de seguridad e inactividad
-        const DEFAULT_PASSWORD = "admin1234";
+        const DEFAULT_CATEGORIES = [
+            "Cámaras IP",
+            "DVRs / NVRs",
+            "Alarmas y Sensores",
+            "Cableado y Conectores",
+            "Redes y Switches",
+            "Fuentes de Poder",
+            "Herramientas",
+            "General"
+        ];
+
         const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos
         let inactivityTimer;
-        let cloudPasswordHash = null;
         let productsList = [];
+        let unsubscribeProducts = null;
+        let unsubscribeMovements = null;
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // SHA-256 en JS Puro
-        async function sha256(str) {
-            const buffer = new TextEncoder().encode(str);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // Cargar o inicializar la contraseña en Firestore (colección 'config', doc 'security')
-        async function initCloudSecurity() {
-            const badge = document.getElementById('dbStatusBadge');
-            try {
-                const secRef = doc(db, "config", "security");
-                const secSnap = await getDoc(secRef);
-                if (!secSnap.exists()) {
-                    const defaultHash = await sha256(DEFAULT_PASSWORD);
-                    await setDoc(secRef, { passwordHash: defaultHash });
-                    cloudPasswordHash = defaultHash;
-                } else {
-                    cloudPasswordHash = secSnap.data().passwordHash;
-                }
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Conectado a Firebase`;
-            } catch (err) {
-                console.error(err);
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Error de conexión (revisa firebaseConfig)`;
+        // Escuchar estado de sesión de Firebase Auth
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('lockScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('userEmailBadge').innerHTML = `
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> ${user.email}
+                `;
+                listenToInventory();
+                resetInactivityTimer();
+            } else {
+                if (unsubscribeProducts) unsubscribeProducts();
+                if (unsubscribeMovements) unsubscribeMovements();
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('lockScreen').classList.remove('hidden');
             }
-        }
+        });
 
-        // Escuchar cambios de productos en tiempo real
+        // Iniciar sesión con Firebase Auth
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const pwd = document.getElementById('loginPassword').value;
+            const errEl = document.getElementById('loginError');
+            const btn = document.getElementById('btnLogin');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Verificando...`;
+            errEl.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pwd);
+                document.getElementById('inactivityAlert').classList.add('hidden');
+                document.getElementById('loginPassword').value = '';
+            } catch (error) {
+                console.error(error.code);
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    errEl.textContent = "Correo o contraseña incorrectos.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errEl.textContent = "Demasiados intentos fallidos. Espera unos minutos.";
+                } else {
+                    errEl.textContent = "Error al conectar con Firebase: " + error.message;
+                }
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-right-to-bracket"></i> Iniciar Sesión`;
+            }
+        });
+
+        // Escuchar datos en tiempo real (solo funciona si hay usuario autenticado por las Reglas Nivel 2)
         function listenToInventory() {
             const q = query(collection(db, "productos"), orderBy("name", "asc"));
-            onSnapshot(q, (snapshot) => {
+            unsubscribeProducts = onSnapshot(q, (snapshot) => {
                 productsList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                syncCategorySelectors();
                 renderTable();
                 updateKPIs();
+            }, (error) => {
+                showToast("Permiso denegado en Firestore. Revisa tu UID en las reglas.");
             });
 
             const movQ = query(collection(db, "movimientos"), orderBy("timestamp", "desc"), limit(20));
-            onSnapshot(movQ, (snapshot) => {
+            unsubscribeMovements = onSnapshot(movQ, (snapshot) => {
                 const listEl = document.getElementById('movementsList');
                 if (snapshot.empty) {
                     listEl.innerHTML = '<p class="text-slate-400">Sin movimientos recientes.</p>';
@@ -326,15 +385,50 @@
             });
         }
 
+        // Sincronizar opciones de categorías en el filtro y en el modal
+        function syncCategorySelectors() {
+            const existingCats = productsList.map(p => p.category).filter(Boolean);
+            const allCategories = [...new Set([...DEFAULT_CATEGORIES, ...existingCats])].sort();
+
+            // 1. Filtro superior
+            const filterSelect = document.getElementById('categoryFilter');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = `<option value="all">Todas las categorías</option>` + 
+                allCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            if (allCategories.includes(currentFilter)) filterSelect.value = currentFilter;
+
+            // 2. Selector del modal de producto
+            const modalSelect = document.getElementById('prodCategorySelect');
+            modalSelect.innerHTML = allCategories.map(c => `<option value="${c}">${c}</option>`).join('') +
+                `<option value="__NEW__">+ Nueva categoría...</option>`;
+        }
+
+        window.handleCategoryOptionChange = () => {
+            const val = document.getElementById('prodCategorySelect').value;
+            const wrapper = document.getElementById('customCategoryWrapper');
+            const input = document.getElementById('prodCustomCategory');
+            if (val === '__NEW__') {
+                wrapper.classList.remove('hidden');
+                input.required = true;
+                input.focus();
+            } else {
+                wrapper.classList.add('hidden');
+                input.required = false;
+            }
+        };
+
         // Renderizar tabla
         function renderTable() {
             const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
             const status = document.getElementById('statusFilter').value;
             const tbody = document.getElementById('inventoryTableBody');
 
             const filtered = productsList.filter(p => {
-                const matchText = p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+                const loc = (p.location || '').toLowerCase();
+                const matchText = p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search) || loc.includes(search);
                 if (!matchText) return false;
+                if (category !== 'all' && p.category !== category) return false;
                 if (status === 'out') return p.stock === 0;
                 if (status === 'low') return p.stock > 0 && p.stock <= 5;
                 if (status === 'ok') return p.stock > 5;
@@ -342,7 +436,7 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No se encontraron productos.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No se encontraron productos con esos filtros.</td></tr>`;
                 return;
             }
 
@@ -355,7 +449,8 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-3 px-4 font-mono text-xs text-slate-500">${p.sku}</td>
                     <td class="py-3 px-4 font-medium text-slate-800">${p.name}</td>
-                    <td class="py-3 px-4 text-slate-500">${p.category}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">${p.category}</span></td>
+                    <td class="py-3 px-4 text-slate-600 text-xs"><i class="fas fa-location-dot text-indigo-400 mr-1"></i>${p.location || 'Sin asignar'}</td>
                     <td class="py-3 px-4 text-right font-medium">$${Number(p.price).toFixed(2)}</td>
                     <td class="py-3 px-4">
                         <div class="flex items-center justify-center gap-2">
@@ -381,7 +476,6 @@
             document.getElementById('kpiOutStock').textContent = productsList.filter(p => p.stock === 0).length;
         }
 
-        // Registrar movimiento en Firestore
         async function logMovement(productName, diff, detail) {
             await addDoc(collection(db, "movimientos"), {
                 productName,
@@ -391,7 +485,6 @@
             });
         }
 
-        // Acciones Globales expuestas a window
         window.adjustStock = async (id, delta) => {
             const prod = productsList.find(p => p.id === id);
             if (!prod) return;
@@ -404,7 +497,7 @@
 
         window.deleteProduct = async (id) => {
             const prod = productsList.find(p => p.id === id);
-            if (!prod || !confirm(`¿Eliminar "${prod.name}" del inventario en la nube?`)) return;
+            if (!prod || !confirm(`¿Eliminar "${prod.name}" del inventario?`)) return;
             await deleteDoc(doc(db, "productos", id));
             await logMovement(prod.name, -prod.stock, "Producto eliminado");
             showToast("Producto eliminado");
@@ -413,11 +506,14 @@
         window.editProduct = (id) => {
             const prod = productsList.find(p => p.id === id);
             if (!prod) return;
+            syncCategorySelectors();
             document.getElementById('modalTitle').textContent = "Editar Producto";
             document.getElementById('prodId').value = prod.id;
             document.getElementById('prodSku').value = prod.sku;
-            document.getElementById('prodCategory').value = prod.category;
+            document.getElementById('prodCategorySelect').value = prod.category;
+            document.getElementById('customCategoryWrapper').classList.add('hidden');
             document.getElementById('prodName').value = prod.name;
+            document.getElementById('prodLocation').value = prod.location || '';
             document.getElementById('prodPrice').value = prod.price;
             document.getElementById('prodStock').value = prod.stock;
             document.getElementById('productModal').classList.remove('hidden');
@@ -426,47 +522,33 @@
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('prodId').value;
+            const selectedCat = document.getElementById('prodCategorySelect').value;
+            const finalCategory = selectedCat === '__NEW__' 
+                ? document.getElementById('prodCustomCategory').value.trim() 
+                : selectedCat;
+
             const data = {
                 sku: document.getElementById('prodSku').value.trim(),
-                category: document.getElementById('prodCategory').value.trim(),
+                category: finalCategory || "General",
                 name: document.getElementById('prodName').value.trim(),
+                location: document.getElementById('prodLocation').value.trim(),
                 price: parseFloat(document.getElementById('prodPrice').value),
                 stock: parseInt(document.getElementById('prodStock').value, 10)
             };
 
             if (id) {
                 await updateDoc(doc(db, "productos", id), data);
-                await logMovement(data.name, 0, "Edición de ficha");
-                showToast("Producto actualizado en la nube");
+                await logMovement(data.name, 0, `Edición (${data.location})`);
+                showToast("Producto actualizado");
             } else {
                 await addDoc(collection(db, "productos"), data);
-                await logMovement(data.name, data.stock, "Alta inicial");
-                showToast("Producto guardado en la nube");
+                await logMovement(data.name, data.stock, `Alta en ${data.location}`);
+                showToast("Producto registrado");
             }
             window.closeProductModal();
         });
 
-        // Login y Gestión de Contraseña en Firestore
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const inputPwd = document.getElementById('loginPassword').value;
-            const inputHash = await sha256(inputPwd);
-            const fallbackHash = await sha256(DEFAULT_PASSWORD);
-
-            if (inputHash === cloudPasswordHash || (!cloudPasswordHash && inputHash === fallbackHash)) {
-                sessionStorage.setItem('inv_cloud_auth', 'true');
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                document.getElementById('loginError').classList.add('hidden');
-                document.getElementById('inactivityAlert').classList.add('hidden');
-                document.getElementById('loginPassword').value = '';
-                listenToInventory();
-                resetInactivityTimer();
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-            }
-        });
-
+        // Cambiar Contraseña en Firebase Auth
         document.getElementById('changePwdForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const curr = document.getElementById('currentPwd').value;
@@ -474,39 +556,40 @@
             const conf = document.getElementById('confirmPwd').value;
             const errEl = document.getElementById('pwdModalError');
 
-            const currHash = await sha256(curr);
-            if (currHash !== cloudPasswordHash) {
-                errEl.textContent = "La contraseña actual es incorrecta.";
-                errEl.classList.remove('hidden');
-                return;
-            }
             if (next !== conf) {
                 errEl.textContent = "Las contraseñas nuevas no coinciden.";
                 errEl.classList.remove('hidden');
                 return;
             }
 
-            const newHash = await sha256(next);
-            await setDoc(doc(db, "config", "security"), { passwordHash: newHash });
-            cloudPasswordHash = newHash;
-            errEl.classList.add('hidden');
-            document.getElementById('changePwdForm').reset();
-            window.closePasswordModal();
-            showToast("Contraseña global actualizada en Firebase");
+            try {
+                const user = auth.currentUser;
+                const credential = EmailAuthProvider.credential(user.email, curr);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, next);
+                
+                errEl.classList.add('hidden');
+                document.getElementById('changePwdForm').reset();
+                window.closePasswordModal();
+                showToast("Contraseña actualizada en Firebase Auth");
+            } catch (error) {
+                errEl.textContent = error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential'
+                    ? "La contraseña actual es incorrecta."
+                    : "Error: " + error.message;
+                errEl.classList.remove('hidden');
+            }
         });
 
-        // Temporizador de inactividad
+        // Cierre por inactividad y logout real
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
-            if (sessionStorage.getItem('inv_cloud_auth') === 'true') {
+            if (auth.currentUser) {
                 inactivityTimer = setTimeout(() => window.lockSession(true), INACTIVITY_TIMEOUT);
             }
         }
 
-        window.lockSession = (byInactivity = false) => {
-            sessionStorage.removeItem('inv_cloud_auth');
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('lockScreen').classList.remove('hidden');
+        window.lockSession = async (byInactivity = false) => {
+            await signOut(auth);
             if (byInactivity) document.getElementById('inactivityAlert').classList.remove('hidden');
         };
 
@@ -516,8 +599,10 @@
 
         // Utilidades UI
         window.openProductModal = () => {
+            syncCategorySelectors();
             document.getElementById('productForm').reset();
             document.getElementById('prodId').value = '';
+            document.getElementById('customCategoryWrapper').classList.add('hidden');
             document.getElementById('modalTitle').textContent = "Nuevo Producto";
             document.getElementById('productModal').classList.remove('hidden');
         };
@@ -532,12 +617,12 @@
             ico.classList.toggle('fa-eye-slash');
         };
         window.exportCSV = () => {
-            const rows = [["SKU", "Nombre", "Categoria", "Precio", "Stock"]];
-            productsList.forEach(p => rows.push([p.sku, p.name, p.category, p.price, p.stock]));
+            const rows = [["SKU", "Nombre", "Categoria", "Ubicacion", "Precio", "Stock"]];
+            productsList.forEach(p => rows.push([p.sku, p.name, p.category, p.location || '', p.price, p.stock]));
             const csv = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csv));
-            link.setAttribute("download", "inventario_cloud.csv");
+            link.setAttribute("download", "inventario_seguro.csv");
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -550,17 +635,8 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('categoryFilter').addEventListener('change', renderTable);
         document.getElementById('statusFilter').addEventListener('change', renderTable);
-
-        // Arranque inicial
-        initCloudSecurity().then(() => {
-            if (sessionStorage.getItem('inv_cloud_auth') === 'true') {
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                listenToInventory();
-                resetInactivityTimer();
-            }
-        });
     </script>
 </body>
 </html>
