@@ -3,1395 +3,564 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Construelec</title>
-    <!-- Tailwind CSS -->
+    <title>Gestión de Inventario Pro - Nube</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#0284c7',
-                            600: '#0265d2',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-    <!-- LOGIN / LOCK SCREEN OVERLAY -->
-    <div id="login-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 transition-opacity duration-300">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
-            <div class="text-center space-y-2">
-                <div class="inline-flex p-3 bg-brand-600/20 text-brand-500 rounded-2xl border border-brand-500/30 mb-2">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+    <!-- PANTALLA DE BLOQUEO -->
+    <div id="lockScreen" class="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                    <i class="fas fa-cloud-lock"></i>
                 </div>
-                <h2 class="text-2xl font-extrabold text-white tracking-tight">Acceso Restringido</h2>
-                <p class="text-xs text-slate-400">Ingresa tu contraseña para acceder al panel de inventario</p>
+                <h2 class="text-2xl font-bold text-slate-800">Acceso Restringido</h2>
+                <p id="lockSubtitle" class="text-sm text-slate-500 mt-1">Sincronizado en la nube • Ingresa tu contraseña</p>
             </div>
 
-            <!-- Login Form -->
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-                <div id="login-error" class="hidden p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-xs text-rose-400 font-medium flex items-center space-x-2">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span id="login-error-msg">Contraseña incorrecta. Inténtalo de nuevo.</span>
-                </div>
+            <div id="inactivityAlert" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-center gap-2">
+                <i class="fas fa-clock text-amber-500"></i>
+                <span>Sesión cerrada automáticamente por inactividad.</span>
+            </div>
 
+            <form id="loginForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Contraseña</label>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Contraseña</label>
                     <div class="relative">
-                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-3.5 pr-10 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
-                        <button type="button" onclick="togglePasswordVisibility('login-password', 'toggle-pass-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition">
-                            <svg id="toggle-pass-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        <input type="password" id="loginPassword" required placeholder="••••••••"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition pr-12">
+                        <button type="button" onclick="togglePwdVisibility('loginPassword', 'eyeLogin')" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600">
+                            <i id="eyeLogin" class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
-
-                <button type="submit" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                    Desbloquear Inventario
+                <p id="loginError" class="hidden text-red-600 text-xs font-medium"><i class="fas fa-exclamation-circle mr-1"></i> Contraseña incorrecta.</p>
+                <button type="submit" id="btnLogin" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fas fa-unlock-alt"></i> Desbloquear Inventario
                 </button>
             </form>
-
-            <!-- Forgot Password & Hint Banner -->
-            <div class="pt-3 border-t border-slate-800/80 text-center space-y-2">
-                <p class="text-[11px] text-slate-400 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
-                    
-
-                <button type="button" onclick="resetToDefaultPassword()" class="text-xs text-slate-400 hover:text-brand-400 underline transition decoration-slate-600 hover:decoration-brand-400">
-                    ¿Olvidaste la contraseña? Restablecer clave predeterminada
-                </button>
+            <div class="mt-4 text-center">
+                <span id="dbStatusBadge" class="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Conectando a Firebase...
+                </span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER (HIDDEN UNTIL AUTHENTICATED) -->
-    <div id="app-container" class="hidden min-h-screen flex flex-col flex-1">
-        
-        <!-- Header Nav Bar -->
-        <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <!-- Title / Logo -->
-                    <div class="flex items-center space-x-3">
-                        <div class="">
-                            <img src="img/sello_chaleco.jpg" width="60" height="60" alt="mochila" title="buo">
-                        </div>
-                        <div>
-                            <h1 class="font-bold text-lg leading-tight tracking-wide">ConsTruelec</h1>
-                            <p class="text-xs text-slate-400">Sistema Inventario</p>
-                        </div>
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="mainApp" class="hidden min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                        <i class="fas fa-boxes-stacked text-lg"></i>
                     </div>
-
-                    <!-- Actions & Nav -->
-                    <div class="flex items-center space-x-2 sm:space-x-3">
-                        <nav class="flex bg-slate-800 p-1 rounded-lg border border-slate-700">
-                            <button id="tab-inventory" onclick="switchTab('inventory')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow">
-                                <span class="flex items-center space-x-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                                    <span>Productos</span>
-                                </span>
-                            </button>
-                            <button id="tab-movements" onclick="switchTab('movements')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white">
-                                <span class="flex items-center space-x-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                                    <span>Movimientos</span>
-                                    <span id="movements-badge" class="ml-1 px-1.5 py-0.2 bg-slate-700 text-slate-300 text-[10px] rounded-full">0</span>
-                                </span>
-                            </button>
-                        </nav>
-
-                        <button onclick="openAddProductModal()" class="inline-flex items-center px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            <span class="hidden sm:inline">Nuevo Producto</span>
-                            <span class="sm:hidden">Nuevo</span>
-                        </button>
-
-                        <!-- Security buttons -->
-                        <div class="flex items-center space-x-1 border-l border-slate-700 pl-2 ml-1">
-                            <button onclick="openPasswordModal()" title="Cambiar Contraseña" class="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                            </button>
-                            <button onclick="handleLogout()" title="Bloquear Sesión" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            </button>
-                        </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-slate-800 leading-tight">Inventario Cloud</h1>
+                        <span class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Sincronizado en tiempo real
+                        </span>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button onclick="openPasswordModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fas fa-key"></i>
+                        <span class="hidden sm:inline">Cambiar Contraseña</span>
+                    </button>
+                    <button onclick="lockSession(false)" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fas fa-lock"></i>
+                        <span class="hidden sm:inline">Bloquear</span>
+                    </button>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content View -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
-
-            <!-- Executive KPI Cards -->
-            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <!-- Card 1: Total Products -->
-                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Productos</p>
-                            <h3 id="kpi-total-products" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-2 flex items-center">
-                        <span id="kpi-total-units" class="font-medium text-slate-700 mr-1">0</span> unidades totales
-                    </p>
+        <!-- Contenido -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+            
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Productos Registrados</div>
+                    <div id="kpiTotalProducts" class="text-2xl font-bold text-slate-800 mt-1">0</div>
                 </div>
-
-                <!-- Card 2: Total Valuation -->
-                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Valor Inventario</p>
-                            <h3 id="kpi-total-value" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">$0.00</h3>
-                        </div>
-                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-2">Valor acumulado actual</p>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Valor Total Inventario</div>
+                    <div id="kpiTotalValue" class="text-2xl font-bold text-indigo-600 mt-1">$0.00</div>
                 </div>
-
-                <!-- Card 3: Low Stock Warning -->
-                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock Bajo</p>
-                            <h3 id="kpi-low-stock" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        </div>
-                    </div>
-                    <p class="text-xs text-amber-700/80 mt-2 font-medium">Requiere reabastecimiento</p>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Stock Bajo (&le; 5)</div>
+                    <div id="kpiLowStock" class="text-2xl font-bold text-amber-500 mt-1">0</div>
                 </div>
-
-                <!-- Card 4: Out of Stock Alert -->
-                <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200/80 hover:shadow-md transition">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Agotados</p>
-                            <h3 id="kpi-out-of-stock" class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                        </div>
-                    </div>
-                    <p class="text-xs text-rose-600 mt-2 font-medium">Sin existencias disponibles</p>
-                </div>
-            </section>
-
-            <!-- VIEW 1: PRODUCTS INVENTORY -->
-            <div id="view-inventory" class="space-y-4">
-                
-                <!-- Toolbar: Search & Filters -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-                    
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
-                        <!-- Search Bar -->
-                        <div class="relative flex-1">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </div>
-                            <input type="text" id="search-input" oninput="renderInventoryTable()" placeholder="Buscar por código SKU, nombre..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                        </div>
-
-                        <!-- Category Filter -->
-                        <select id="filter-category" onchange="renderInventoryTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">Todas las Categorías</option>
-                        </select>
-
-                        <!-- Stock Status Filter -->
-                        <select id="filter-status" onchange="renderInventoryTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">Todos los Estados</option>
-                            <option value="ok">Disponible</option>
-                            <option value="low">Stock Bajo</option>
-                            <option value="out">Agotado</option>
-                        </select>
-
-                        <!-- Clear Filter -->
-                        <button onclick="clearFilters()" title="Limpiar Filtros" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition border border-transparent hover:border-slate-200">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </button>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex items-center space-x-2 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 justify-end">
-                        <button onclick="openQuickMovementModal()" class="px-3 py-2 text-xs sm:text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition inline-flex items-center">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                            Movimiento Rápido
-                        </button>
-                        
-                        <button onclick="exportToCSV()" class="px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition inline-flex items-center shadow-xs">
-                            <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Exportar CSV
-                        </button>
-
-                        <button onclick="confirmResetData()" title="Recargar datos de prueba iniciales" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition border border-slate-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Products Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                    <th class="py-3 px-4 cursor-pointer hover:text-slate-800" onclick="sortTable('sku')">
-                                        <div class="flex items-center space-x-1"><span>SKU</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
-                                    </th>
-                                    <th class="py-3 px-4 cursor-pointer hover:text-slate-800" onclick="sortTable('name')">
-                                        <div class="flex items-center space-x-1"><span>Producto</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
-                                    </th>
-                                    <th class="py-3 px-4">Categoría</th>
-                                    <th class="py-3 px-4 text-center cursor-pointer hover:text-slate-800" onclick="sortTable('stock')">
-                                        <div class="flex items-center justify-center space-x-1"><span>Stock</span><svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg></div>
-                                    </th>
-                                    <th class="py-3 px-4 text-center">Estado</th>
-                                    <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-800" onclick="sortTable('price')">Precio Unit.</th>
-                                    <th class="py-3 px-4 text-right cursor-pointer hover:text-slate-800" onclick="sortTable('totalVal')">Valor Total</th>
-                                    <th class="py-3 px-4 text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="products-table-body" class="divide-y divide-slate-100 text-sm">
-                                <!-- Rendered dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-                        <div id="table-summary-count">Mostrando 0 productos</div>
-                        <div class="flex items-center space-x-4">
-                            <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Disponible</span>
-                            <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span> Stock Bajo</span>
-                            <span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span> Agotado</span>
-                        </div>
-                    </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-semibold text-slate-400 uppercase">Agotados (0)</div>
+                    <div id="kpiOutStock" class="text-2xl font-bold text-red-600 mt-1">0</div>
                 </div>
             </div>
 
-            <!-- VIEW 2: MOVEMENT HISTORY LOG -->
-            <div id="view-movements" class="hidden space-y-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Historial de Movimientos de Stock</h2>
-                        <p class="text-xs text-slate-500">Registro cronológico de entradas, salidas y ajustes manuales.</p>
+            <!-- Controles y Filtros -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1">
+                    <div class="relative flex-1 max-w-md">
+                        <i class="fas fa-search absolute left-3.5 top-3 text-slate-400"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar por SKU o nombre..."
+                            class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
-                    
-                    <div class="flex items-center space-x-2">
-                        <select id="filter-mov-type" onchange="renderMovementsTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">Todos los Tipos</option>
-                            <option value="entrada">Entradas (+)</option>
-                            <option value="salida">Salidas (-)</option>
-                            <option value="ajuste">Ajustes manuales</option>
-                        </select>
-
-                        <button onclick="confirmClearHistory()" class="px-3 py-1.5 text-xs text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition font-medium">
-                            Limpiar Historial
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                    <th class="py-3 px-4">Fecha y Hora</th>
-                                    <th class="py-3 px-4">Tipo</th>
-                                    <th class="py-3 px-4">Producto</th>
-                                    <th class="py-3 px-4 text-center">Cantidad</th>
-                                    <th class="py-3 px-4 text-center">Stock Anterior ➔ Nuevo</th>
-                                    <th class="py-3 px-4">Notas / Motivo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="movements-table-body" class="divide-y divide-slate-100 text-sm">
-                                <!-- Rendered dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div> <!-- END APP CONTAINER -->
-
-    <!-- MODAL 1: ADD / EDIT PRODUCT -->
-    <div id="product-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg transform transition-all overflow-hidden">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <h3 id="modal-product-title" class="text-base font-bold">Agregar Nuevo Producto</h3>
-                <button onclick="closeProductModal()" class="text-slate-400 hover:text-white transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-
-            <form id="product-form" onsubmit="handleProductSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="prod-id">
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">SKU / Código <span class="text-rose-500">*</span></label>
-                        <input type="text" id="prod-sku" required placeholder="EJ: PROD-001" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none uppercase font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Categoría <span class="text-rose-500">*</span></label>
-                        <input type="text" id="prod-category" required list="category-suggestions" placeholder="Selecciona o escribe..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                        <datalist id="category-suggestions"></datalist>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nombre del Producto <span class="text-rose-500">*</span></label>
-                    <input type="text" id="prod-name" required placeholder="Descripción del producto..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Stock Actual <span class="text-rose-500">*</span></label>
-                        <input type="number" id="prod-stock" required min="0" value="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Stock Mínimo <span class="text-rose-500">*</span></label>
-                        <input type="number" id="prod-min-stock" required min="0" value="5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Precio Unit. ($) <span class="text-rose-500">*</span></label>
-                        <input type="number" id="prod-price" required min="0" step="0.01" value="0.00" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Ubicación (Opcional)</label>
-                        <input type="text" id="prod-location" placeholder="Ej: Pasillo 2, Estante B" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Proveedor (Opcional)</label>
-                        <input type="text" id="prod-supplier" placeholder="Nombre del proveedor" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 rounded-lg shadow-sm transition">Guardar Producto</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: QUICK MOVEMENT -->
-    <div id="movement-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <h3 class="text-base font-bold">Registrar Movimiento de Stock</h3>
-                <button onclick="closeMovementModal()" class="text-slate-400 hover:text-white transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-
-            <form id="movement-form" onsubmit="handleMovementSubmit(event)" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Producto <span class="text-rose-500">*</span></label>
-                    <select id="mov-product-id" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                        <!-- Options generated dynamically -->
+                    <select id="statusFilter" class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white outline-none">
+                        <option value="all">Todos los estados</option>
+                        <option value="ok">Disponible</option>
+                        <option value="low">Stock Bajo</option>
+                        <option value="out">Agotado</option>
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tipo de Movimiento <span class="text-rose-500">*</span></label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition hover:bg-emerald-50 border-slate-200 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
-                            <input type="radio" name="mov-type" value="entrada" checked class="text-emerald-600 focus:ring-emerald-500">
-                            <span class="ml-2 text-xs font-bold text-emerald-800">Entrada (+)</span>
-                        </label>
-                        <label class="flex items-center justify-center p-2.5 border rounded-lg cursor-pointer transition hover:bg-rose-50 border-slate-200 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
-                            <input type="radio" name="mov-type" value="salida" class="text-rose-600 focus:ring-rose-500">
-                            <span class="ml-2 text-xs font-bold text-rose-800">Salida (-)</span>
-                        </label>
+                <div class="flex gap-2 w-full md:w-auto justify-end">
+                    <button onclick="exportCSV()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fas fa-file-csv text-emerald-600"></i> Exportar CSV
+                    </button>
+                    <button onclick="openProductModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Nuevo Producto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3.5 px-4">SKU</th>
+                                <th class="py-3.5 px-4">Producto</th>
+                                <th class="py-3.5 px-4">Categoría</th>
+                                <th class="py-3.5 px-4 text-right">Precio Unit.</th>
+                                <th class="py-3.5 px-4 text-center">Stock</th>
+                                <th class="py-3.5 px-4 text-center">Estado</th>
+                                <th class="py-3.5 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody" class="divide-y divide-slate-100 text-sm">
+                            <tr><td colspan="7" class="py-8 text-center text-slate-400">Cargando datos desde Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historial de Movimientos -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-history text-indigo-500"></i> Últimos Movimientos en la Nube
+                </h3>
+                <div id="movementsList" class="space-y-2 max-h-60 overflow-y-auto text-xs text-slate-600">
+                    <p class="text-slate-400">Sin movimientos recientes.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PRODUCTO -->
+    <div id="productModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Nuevo Producto</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="productForm" class="space-y-4">
+                <input type="hidden" id="prodId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">SKU / Código</label>
+                        <input type="text" id="prodSku" required placeholder="CAM-001" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
+                        <input type="text" id="prodCategory" required placeholder="Seguridad / Redes" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                     </div>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Cantidad <span class="text-rose-500">*</span></label>
-                    <input type="number" id="mov-quantity" required min="1" value="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del Producto</label>
+                    <input type="text" id="prodName" required placeholder="Cámara IP Domo 4MP" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Motivo / Notas</label>
-                    <input type="text" id="mov-notes" placeholder="Ej: Compra proveedor, Venta cliente #123" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Precio ($)</label>
+                        <input type="number" step="0.01" min="0" id="prodPrice" required placeholder="45.00" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Stock Inicial</label>
+                        <input type="number" min="0" id="prodStock" required placeholder="10" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    </div>
                 </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closeMovementModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 rounded-lg shadow-sm transition">Registrar Movimiento</button>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg">Guardar en Nube</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 3: CONFIRMATION DIALOG -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden p-6 space-y-4">
-            <div class="flex items-center space-x-3">
-                <div id="confirm-icon-bg" class="p-3 bg-rose-100 text-rose-600 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <div>
-                    <h3 id="confirm-title" class="text-base font-bold text-slate-900">¿Estás seguro?</h3>
-                    <p id="confirm-message" class="text-xs text-slate-500 mt-0.5">Esta acción no se puede deshacer.</p>
-                </div>
-            </div>
-
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-                <button id="confirm-action-btn" type="button" class="px-5 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-500 rounded-lg shadow-sm transition">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 4: CHANGE PASSWORD -->
-    <div id="password-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all overflow-hidden">
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-                <h3 class="text-base font-bold flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                    <span>Cambiar Contraseña</span>
+    <!-- MODAL CAMBIAR CONTRASEÑA -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-key text-amber-500"></i> Cambiar Contraseña Global
                 </h3>
-                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-white transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
-
-            <form id="password-form" onsubmit="handleChangePasswordSubmit(event)" class="p-6 space-y-4">
-                <div id="pwd-modal-error" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 font-medium"></div>
-
+            <p class="text-xs text-slate-500 mb-4">Esta nueva contraseña se actualizará en Firebase para todos tus dispositivos.</p>
+            <form id="changePwdForm" class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Contraseña Actual <span class="text-rose-500">*</span></label>
-                    <input type="password" id="curr-password" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Contraseña Actual</label>
+                    <input type="password" id="currentPwd" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nueva Contraseña <span class="text-rose-500">*</span></label>
-                    <input type="password" id="new-password" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nueva Contraseña (mín. 4 caracteres)</label>
+                    <input type="password" id="newPwd" minlength="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Confirmar Nueva Contraseña <span class="text-rose-500">*</span></label>
-                    <input type="password" id="confirm-new-password" required minlength="4" placeholder="Repite la nueva contraseña" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirmPwd" minlength="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
                 </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm transition">Actualizar Contraseña</button>
+                <p id="pwdModalError" class="hidden text-xs text-red-600 font-medium"></p>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg">Actualizar Clave</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- TOAST NOTIFICACIÓN -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium transform translate-y-20 opacity-0 transition-all duration-300 z-50"></div>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // PURE JAVASCRIPT SHA-256 (100% Compatible with file://, HTTP, HTTPS)
-        function hashPassword(str) {
-            function rightRotate(value, amount) {
-                return (value >>> amount) | (value << (32 - amount));
-            }
-            var mathPow = Math.pow;
-            var maxWord = mathPow(2, 32);
-            var i, j;
-            var result = '';
-            var words = [];
-            var asciiBitLength = str.length * 8;
-            var hash = [];
-            var k = [];
-            var primeCounter = 0;
+    <!-- FIREBASE SDK MODULAR -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, 
+            onSnapshot, query, orderBy, limit, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-            var isPrime = function(n) {
-                for (var factor = 2; factor * factor <= n; factor++) {
-                    if (n % factor === 0) return false;
+        // =========================================================================
+        // 1. PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
+        // =========================================================================
+        const firebaseConfig = {
+  apiKey: "AIzaSyA85q7FO0W2skwz_n_g0-_leEma5Q2lCE8",
+  authDomain: "inventarioconstruelec.firebaseapp.com",
+  projectId: "inventarioconstruelec",
+  storageBucket: "inventarioconstruelec.firebasestorage.app",
+  messagingSenderId: "959693297838",
+  appId: "1:959693297838:web:fb77158c01ceea1893f53f",
+  measurementId: "G-VCL25F3468"
+};
+
+        // Configuración de seguridad e inactividad
+        const DEFAULT_PASSWORD = "admin1234";
+        const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos
+        let inactivityTimer;
+        let cloudPasswordHash = null;
+        let productsList = [];
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // SHA-256 en JS Puro
+        async function sha256(str) {
+            const buffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Cargar o inicializar la contraseña en Firestore (colección 'config', doc 'security')
+        async function initCloudSecurity() {
+            const badge = document.getElementById('dbStatusBadge');
+            try {
+                const secRef = doc(db, "config", "security");
+                const secSnap = await getDoc(secRef);
+                if (!secSnap.exists()) {
+                    const defaultHash = await sha256(DEFAULT_PASSWORD);
+                    await setDoc(secRef, { passwordHash: defaultHash });
+                    cloudPasswordHash = defaultHash;
+                } else {
+                    cloudPasswordHash = secSnap.data().passwordHash;
                 }
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Conectado a Firebase`;
+            } catch (err) {
+                console.error(err);
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Error de conexión (revisa firebaseConfig)`;
+            }
+        }
+
+        // Escuchar cambios de productos en tiempo real
+        function listenToInventory() {
+            const q = query(collection(db, "productos"), orderBy("name", "asc"));
+            onSnapshot(q, (snapshot) => {
+                productsList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderTable();
+                updateKPIs();
+            });
+
+            const movQ = query(collection(db, "movimientos"), orderBy("timestamp", "desc"), limit(20));
+            onSnapshot(movQ, (snapshot) => {
+                const listEl = document.getElementById('movementsList');
+                if (snapshot.empty) {
+                    listEl.innerHTML = '<p class="text-slate-400">Sin movimientos recientes.</p>';
+                    return;
+                }
+                listEl.innerHTML = snapshot.docs.map(d => {
+                    const m = d.data();
+                    const dateStr = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleString() : 'Ahora';
+                    const color = m.diff > 0 ? 'text-emerald-600' : (m.diff < 0 ? 'text-red-600' : 'text-indigo-600');
+                    const sign = m.diff > 0 ? `+${m.diff}` : m.diff;
+                    return `<div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span><strong>${m.productName}</strong> (${m.detail})</span>
+                        <span class="font-mono font-bold ${color}">${sign} • <span class="text-slate-400 font-normal">${dateStr}</span></span>
+                    </div>`;
+                }).join('');
+            });
+        }
+
+        // Renderizar tabla
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const tbody = document.getElementById('inventoryTableBody');
+
+            const filtered = productsList.filter(p => {
+                const matchText = p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+                if (!matchText) return false;
+                if (status === 'out') return p.stock === 0;
+                if (status === 'low') return p.stock > 0 && p.stock <= 5;
+                if (status === 'ok') return p.stock > 5;
                 return true;
-            };
+            });
 
-            for (var candidate = 2; primeCounter < 64; candidate++) {
-                if (isPrime(candidate)) {
-                    if (primeCounter < 8) {
-                        hash[primeCounter] = (mathPow(candidate, 1/2) * maxWord) | 0;
-                    }
-                    k[primeCounter] = (mathPow(candidate, 1/3) * maxWord) | 0;
-                    primeCounter++;
-                }
-            }
-
-            str += '\x80';
-            while (str.length % 64 !== 56) str += '\x00';
-            for (i = 0; i < str.length; i++) {
-                j = str.charCodeAt(i);
-                words[i >> 2] |= j << ((3 - i % 4) * 8);
-            }
-            words[words.length] = ((asciiBitLength / maxWord) | 0);
-            words[words.length] = (asciiBitLength);
-
-            for (j = 0; j < words.length;) {
-                var w = words.slice(j, j += 16);
-                var oldHash = hash;
-                hash = hash.slice(0, 8);
-
-                for (i = 0; i < 64; i++) {
-                    var w15 = w[i - 15], w2 = w[i - 2];
-                    var a = hash[0], e = hash[4];
-                    var temp1 = hash[7]
-                        + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
-                        + ((e & hash[5]) ^ ((~e) & hash[6]))
-                        + k[i]
-                        + (w[i] = (i < 16) ? w[i] : (
-                            w[i - 16]
-                            + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
-                            + w[i - 7]
-                            + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
-                        ) | 0
-                    );
-                    var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
-                        + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
-
-                    hash = [(temp1 + temp2) | 0].concat(hash);
-                    hash[4] = (hash[4] + temp1) | 0;
-                }
-
-                for (i = 0; i < 8; i++) {
-                    hash[i] = (hash[i] + oldHash[i]) | 0;
-                }
-            }
-
-            for (i = 0; i < 8; i++) {
-                for (j = 3; j >= 0; j--) {
-                    var b = (hash[i] >> (j * 8)) & 255;
-                    result += (b < 16 ? '0' : '') + b.toString(16);
-                }
-            }
-            return result;
-        }
-
-        const PWD_STORAGE_KEY = 'inv_app_pwd_hash_v2';
-        const DEFAULT_PASS_HASH = hashPassword("jg2010");
-
-        function getStoredPasswordHash() {
-            return localStorage.getItem(PWD_STORAGE_KEY) || DEFAULT_PASS_HASH;
-        }
-
-        function checkAuthState() {
-            const isAuthenticated = sessionStorage.getItem('inv_app_auth') === 'true';
-            const loginGate = document.getElementById('login-gate');
-            const appContainer = document.getElementById('app-container');
-
-            if (isAuthenticated) {
-                loginGate.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-            } else {
-                loginGate.classList.remove('hidden');
-                appContainer.classList.add('hidden');
-            }
-        }
-
-        function handleLogin(event) {
-            event.preventDefault();
-            const passwordInput = document.getElementById('login-password').value;
-            const errorBanner = document.getElementById('login-error');
-
-            const hashedInput = hashPassword(passwordInput);
-            const validHash = getStoredPasswordHash();
-
-            if (hashedInput === validHash) {
-                sessionStorage.setItem('inv_app_auth', 'true');
-                errorBanner.classList.add('hidden');
-                document.getElementById('login-password').value = '';
-                checkAuthState();
-                showToast("¡Sesión iniciada correctamente!", "success");
-            } else {
-                errorBanner.classList.remove('hidden');
-                document.getElementById('login-password').focus();
-            }
-        }
-
-        function handleLogout() {
-            sessionStorage.removeItem('inv_app_auth');
-            checkAuthState();
-            showToast("Sesión bloqueada correctamente.", "info");
-        }
-
-        function resetToDefaultPassword() {
-            showConfirmModal(
-                "Restablecer Contraseña Predeterminada",
-                "¿Deseas restablecer la contraseña de acceso a 'admin1234'? Tu inventario no se verá afectado.",
-                () => {
-                    localStorage.setItem(PWD_STORAGE_KEY, DEFAULT_PASS_HASH);
-                    document.getElementById('login-error').classList.add('hidden');
-                    document.getElementById('login-password').value = '';
-                    showToast("Contraseña restablecida a 'admin1234'", "success");
-                }
-            );
-        }
-
-        function togglePasswordVisibility(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.049 10.049 0 014.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-1.921 1.921L3 3l18 18"></path>`;
-            } else {
-                input.type = 'password';
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>`;
-            }
-        }
-
-        function openPasswordModal() {
-            document.getElementById('password-form').reset();
-            document.getElementById('pwd-modal-error').classList.add('hidden');
-            document.getElementById('password-modal').classList.remove('hidden');
-        }
-
-        function closePasswordModal() {
-            document.getElementById('password-modal').classList.add('hidden');
-        }
-
-        function handleChangePasswordSubmit(event) {
-            event.preventDefault();
-            const curr = document.getElementById('curr-password').value;
-            const newP = document.getElementById('new-password').value;
-            const confirmP = document.getElementById('confirm-new-password').value;
-            const errorDiv = document.getElementById('pwd-modal-error');
-
-            const currHash = hashPassword(curr);
-            const savedHash = getStoredPasswordHash();
-
-            if (currHash !== savedHash) {
-                errorDiv.textContent = "La contraseña actual es incorrecta.";
-                errorDiv.classList.remove('hidden');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No se encontraron productos.</td></tr>`;
                 return;
             }
 
-            if (newP !== confirmP) {
-                errorDiv.textContent = "La nueva contraseña y su confirmación no coinciden.";
-                errorDiv.classList.remove('hidden');
-                return;
-            }
+            tbody.innerHTML = filtered.map(p => {
+                let badge = `<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Disponible</span>`;
+                if (p.stock === 0) badge = `<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Agotado</span>`;
+                else if (p.stock <= 5) badge = `<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Stock Bajo</span>`;
 
-            const newHash = hashPassword(newP);
-            localStorage.setItem(PWD_STORAGE_KEY, newHash);
-            closePasswordModal();
-            showToast("Contraseña actualizada con éxito.", "success");
-        }
-
-        // INITIAL SAMPLE DATA
-        const INITIAL_PRODUCTS = [
-            { id: "prod_1", sku: "NET-101", name: "Router Wi-Fi 6 Mesh Dual Band AX3000", category: "Redes", stock: 18, minStock: 5, price: 89.50, location: "Estante A-1", supplier: "TechGlobal S.A." },
-            { id: "prod_2", sku: "SEC-204", name: "Cámara IP Exterior 4K Visión Nocturna", category: "Seguridad", stock: 3, minStock: 5, price: 65.00, location: "Estante B-2", supplier: "Securitas Tech" },
-            { id: "prod_3", sku: "CAB-050", name: "Bobina Cable UTP Cat6 305m Exterior", category: "Redes", stock: 0, minStock: 2, price: 120.00, location: "Depósito C", supplier: "TechGlobal S.A." },
-            { id: "prod_4", sku: "FER-882", name: "Kit Herramientas Crimpado + Tester RJ45", category: "Ferretería", stock: 12, minStock: 3, price: 45.90, location: "Estante A-3", supplier: "Herramientas Industrial" },
-            { id: "prod_5", sku: "TEC-309", name: "Switch Gigabit 16 Puertos PoE+ Managed", category: "Redes", stock: 7, minStock: 4, price: 185.00, location: "Rack R-2", supplier: "TechGlobal S.A." },
-            { id: "prod_6", sku: "SEC-108", name: "Disco Duro Surveillance 4TB SATA3", category: "Almacenamiento", stock: 2, minStock: 4, price: 98.00, location: "Estante B-1", supplier: "Storage Direct" },
-            { id: "prod_7", sku: "ACC-015", name: "UPS Servidor Online 1500VA / 900W", category: "Energía", stock: 9, minStock: 2, price: 240.00, location: "Depósito A", supplier: "PowerCorp" },
-            { id: "prod_8", sku: "ILU-402", name: "Reflector LED Solar 100W IP67 Control", category: "Iluminación", stock: 25, minStock: 6, price: 34.50, location: "Estante D-4", supplier: "ElectroLuz" }
-        ];
-
-        const INITIAL_MOVEMENTS = [
-            { id: "mov_1", productId: "prod_1", sku: "NET-101", productName: "Router Wi-Fi 6 Mesh Dual Band AX3000", type: "entrada", quantity: 20, previousStock: 0, newStock: 20, notes: "Inventario inicial de apertura", timestamp: new Date(Date.now() - 86400000 * 3).toISOString() },
-            { id: "mov_2", productId: "prod_2", sku: "SEC-204", productName: "Cámara IP Exterior 4K Visión Nocturna", type: "salida", quantity: 2, previousStock: 5, newStock: 3, notes: "Despacho a cliente Orden #1042", timestamp: new Date(Date.now() - 86400000 * 1).toISOString() }
-        ];
-
-        // State Management
-        let products = [];
-        let movements = [];
-        let sortColumn = 'name';
-        let sortAsc = true;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuthState();
-            loadState();
-            renderCategoryOptions();
-            renderInventoryTable();
-            renderMovementsTable();
-            updateKPIs();
-        });
-
-        function loadState() {
-            const savedProducts = localStorage.getItem('inv_app_products');
-            const savedMovements = localStorage.getItem('inv_app_movements');
-
-            if (savedProducts) {
-                try {
-                    products = JSON.parse(savedProducts);
-                } catch(e) {
-                    products = [...INITIAL_PRODUCTS];
-                }
-            } else {
-                products = [...INITIAL_PRODUCTS];
-            }
-
-            if (savedMovements) {
-                try {
-                    movements = JSON.parse(savedMovements);
-                } catch(e) {
-                    movements = [...INITIAL_MOVEMENTS];
-                }
-            } else {
-                movements = [...INITIAL_MOVEMENTS];
-            }
-
-            saveState();
-        }
-
-        function saveState() {
-            localStorage.setItem('inv_app_products', JSON.stringify(products));
-            localStorage.setItem('inv_app_movements', JSON.stringify(movements));
-        }
-
-        function confirmResetData() {
-            showConfirmModal(
-                "Restablecer Datos de Ejemplo",
-                "¿Deseas reemplazar tu inventario actual por los datos de prueba iniciales?",
-                () => {
-                    products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
-                    movements = JSON.parse(JSON.stringify(INITIAL_MOVEMENTS));
-                    saveState();
-                    renderCategoryOptions();
-                    renderInventoryTable();
-                    renderMovementsTable();
-                    updateKPIs();
-                    showToast("Inventario restablecido a datos de prueba.", "info");
-                }
-            );
-        }
-
-        function switchTab(tabName) {
-            const inventoryTabBtn = document.getElementById('tab-inventory');
-            const movementsTabBtn = document.getElementById('tab-movements');
-            const inventoryView = document.getElementById('view-inventory');
-            const movementsView = document.getElementById('view-movements');
-
-            if (tabName === 'inventory') {
-                inventoryView.classList.remove('hidden');
-                movementsView.classList.add('hidden');
-                inventoryTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow";
-                movementsTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white";
-            } else {
-                inventoryView.classList.add('hidden');
-                movementsView.classList.remove('hidden');
-                movementsTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 bg-brand-600 text-white shadow";
-                inventoryTabBtn.className = "px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 text-slate-400 hover:text-white";
-                renderMovementsTable();
-            }
+                return `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="py-3 px-4 font-mono text-xs text-slate-500">${p.sku}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800">${p.name}</td>
+                    <td class="py-3 px-4 text-slate-500">${p.category}</td>
+                    <td class="py-3 px-4 text-right font-medium">$${Number(p.price).toFixed(2)}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="window.adjustStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-200 hover:bg-red-100 hover:text-red-600 font-bold transition">-</button>
+                            <span class="w-8 text-center font-bold">${p.stock}</span>
+                            <button onclick="window.adjustStock('${p.id}', 1)" class="w-7 h-7 rounded-lg bg-slate-200 hover:bg-emerald-100 hover:text-emerald-600 font-bold transition">+</button>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-center">${badge}</td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                        <button onclick="window.editProduct('${p.id}')" class="text-indigo-600 hover:text-indigo-800" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button onclick="window.deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function updateKPIs() {
-            const totalProducts = products.length;
-            const totalUnits = products.reduce((sum, p) => sum + Number(p.stock), 0);
-            const totalValuation = products.reduce((sum, p) => sum + (Number(p.stock) * Number(p.price)), 0);
-            const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= p.minStock).length;
-            const outOfStockCount = products.filter(p => p.stock === 0).length;
-
-            document.getElementById('kpi-total-products').textContent = totalProducts.toLocaleString('es-ES');
-            document.getElementById('kpi-total-units').textContent = totalUnits.toLocaleString('es-ES');
-            document.getElementById('kpi-total-value').textContent = '$' + totalValuation.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('kpi-low-stock').textContent = lowStockCount;
-            document.getElementById('kpi-out-of-stock').textContent = outOfStockCount;
-            
-            document.getElementById('movements-badge').textContent = movements.length;
+            document.getElementById('kpiTotalProducts').textContent = productsList.length;
+            const totalVal = productsList.reduce((acc, p) => acc + (p.price * p.stock), 0);
+            document.getElementById('kpiTotalValue').textContent = `$${totalVal.toFixed(2)}`;
+            document.getElementById('kpiLowStock').textContent = productsList.filter(p => p.stock > 0 && p.stock <= 5).length;
+            document.getElementById('kpiOutStock').textContent = productsList.filter(p => p.stock === 0).length;
         }
 
-        function renderCategoryOptions() {
-            const categories = [...new Set(products.map(p => p.category))].sort();
-            const filterSelect = document.getElementById('filter-category');
-            const dataList = document.getElementById('category-suggestions');
-
-            const currentSelected = filterSelect.value;
-            filterSelect.innerHTML = '<option value="">Todas las Categorías</option>';
-            dataList.innerHTML = '';
-
-            categories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                if (cat === currentSelected) option.selected = true;
-                filterSelect.appendChild(option);
-
-                const dataOption = document.createElement('option');
-                dataOption.value = cat;
-                dataList.appendChild(dataOption);
+        // Registrar movimiento en Firestore
+        async function logMovement(productName, diff, detail) {
+            await addDoc(collection(db, "movimientos"), {
+                productName,
+                diff,
+                detail,
+                timestamp: serverTimestamp()
             });
         }
 
-        function getFilteredProducts() {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
-            const categoryFilter = document.getElementById('filter-category').value;
-            const statusFilter = document.getElementById('filter-status').value;
-
-            return products.filter(p => {
-                const matchesSearch = p.name.toLowerCase().includes(searchQuery) || p.sku.toLowerCase().includes(searchQuery);
-                const matchesCategory = categoryFilter === '' || p.category === categoryFilter;
-                
-                let matchesStatus = true;
-                if (statusFilter === 'ok') matchesStatus = p.stock > p.minStock;
-                else if (statusFilter === 'low') matchesStatus = p.stock > 0 && p.stock <= p.minStock;
-                else if (statusFilter === 'out') matchesStatus = p.stock === 0;
-
-                return matchesSearch && matchesCategory && matchesStatus;
-            }).sort((a, b) => {
-                let valA = a[sortColumn];
-                let valB = b[sortColumn];
-
-                if (sortColumn === 'totalVal') {
-                    valA = a.stock * a.price;
-                    valB = b.stock * b.price;
-                }
-
-                if (typeof valA === 'string') {
-                    valA = valA.toLowerCase();
-                    valB = valB.toLowerCase();
-                }
-
-                if (valA < valB) return sortAsc ? -1 : 1;
-                if (valA > valB) return sortAsc ? 1 : -1;
-                return 0;
-            });
-        }
-
-        function sortTable(column) {
-            if (sortColumn === column) {
-                sortAsc = !sortAsc;
-            } else {
-                sortColumn = column;
-                sortAsc = true;
-            }
-            renderInventoryTable();
-        }
-
-        function clearFilters() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('filter-category').value = '';
-            document.getElementById('filter-status').value = '';
-            renderInventoryTable();
-        }
-
-        function renderInventoryTable() {
-            const filtered = getFilteredProducts();
-            const tbody = document.getElementById('products-table-body');
-            tbody.innerHTML = '';
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-10 text-slate-400">
-                            <svg class="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                            <p class="font-medium text-sm text-slate-600">No se encontraron productos</p>
-                        </td>
-                    </tr>
-                `;
-                document.getElementById('table-summary-count').textContent = `Mostrando 0 de ${products.length} productos`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                const totalValue = p.stock * p.price;
-                
-                let statusBadge = '';
-                if (p.stock === 0) {
-                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>Agotado</span>`;
-                } else if (p.stock <= p.minStock) {
-                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>Stock Bajo</span>`;
-                } else {
-                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>Disponible</span>`;
-                }
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition duration-150";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-mono font-medium text-xs text-slate-600 whitespace-nowrap">
-                        <span class="px-2 py-1 bg-slate-100 rounded border border-slate-200">${escapeHtml(p.sku)}</span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <div class="font-semibold text-slate-900">${escapeHtml(p.name)}</div>
-                        <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                            ${p.location ? `<span>📍 ${escapeHtml(p.location)}</span>` : ''}
-                            ${p.supplier ? `<span>🏢 ${escapeHtml(p.supplier)}</span>` : ''}
-                        </div>
-                    </td>
-                    <td class="py-3 px-4 whitespace-nowrap">
-                        <span class="inline-block px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-md border border-slate-200">
-                            ${escapeHtml(p.category)}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 whitespace-nowrap">
-                        <div class="flex items-center justify-center space-x-1">
-                            <button onclick="quickAdjustStock('${p.id}', -1)" title="Disminuir stock en 1" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition font-bold border border-slate-300">
-                                -
-                            </button>
-                            <span class="font-bold text-sm min-w-[2.5rem] text-center ${p.stock === 0 ? 'text-rose-600' : 'text-slate-800'}">
-                                ${p.stock}
-                            </span>
-                            <button onclick="quickAdjustStock('${p.id}', 1)" title="Aumentar stock en 1" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition font-bold border border-slate-300">
-                                +
-                            </button>
-                        </div>
-                        <div class="text-[10px] text-center text-slate-400 mt-0.5">mín: ${p.minStock}</div>
-                    </td>
-                    <td class="py-3 px-4 text-center whitespace-nowrap">
-                        ${statusBadge}
-                    </td>
-                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">
-                        $${Number(p.price).toFixed(2)}
-                    </td>
-                    <td class="py-3 px-4 text-right font-bold text-slate-900 whitespace-nowrap">
-                        $${totalValue.toFixed(2)}
-                    </td>
-                    <td class="py-3 px-4 text-center whitespace-nowrap">
-                        <div class="flex items-center justify-center space-x-1">
-                            <button onclick="openEditProductModal('${p.id}')" title="Editar Producto" class="p-1.5 text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                            <button onclick="confirmDeleteProduct('${p.id}')" title="Eliminar Producto" class="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('table-summary-count').textContent = `Mostrando ${filtered.length} de ${products.length} productos`;
-        }
-
-        function quickAdjustStock(productId, delta) {
-            const prod = products.find(p => p.id === productId);
+        // Acciones Globales expuestas a window
+        window.adjustStock = async (id, delta) => {
+            const prod = productsList.find(p => p.id === id);
             if (!prod) return;
+            const newStock = Math.max(0, prod.stock + delta);
+            if (newStock === prod.stock) return;
+            await updateDoc(doc(db, "productos", id), { stock: newStock });
+            await logMovement(prod.name, delta, `Stock: ${prod.stock} -> ${newStock}`);
+            showToast(`Stock actualizado: ${prod.name} (${newStock})`);
+        };
 
-            const previousStock = prod.stock;
-            const newStock = previousStock + delta;
+        window.deleteProduct = async (id) => {
+            const prod = productsList.find(p => p.id === id);
+            if (!prod || !confirm(`¿Eliminar "${prod.name}" del inventario en la nube?`)) return;
+            await deleteDoc(doc(db, "productos", id));
+            await logMovement(prod.name, -prod.stock, "Producto eliminado");
+            showToast("Producto eliminado");
+        };
 
-            if (newStock < 0) {
-                showToast("El stock no puede ser menor a cero.", "warning");
-                return;
-            }
+        window.editProduct = (id) => {
+            const prod = productsList.find(p => p.id === id);
+            if (!prod) return;
+            document.getElementById('modalTitle').textContent = "Editar Producto";
+            document.getElementById('prodId').value = prod.id;
+            document.getElementById('prodSku').value = prod.sku;
+            document.getElementById('prodCategory').value = prod.category;
+            document.getElementById('prodName').value = prod.name;
+            document.getElementById('prodPrice').value = prod.price;
+            document.getElementById('prodStock').value = prod.stock;
+            document.getElementById('productModal').classList.remove('hidden');
+        };
 
-            prod.stock = newStock;
-
-            const newMovement = {
-                id: "mov_" + Date.now(),
-                productId: prod.id,
-                sku: prod.sku,
-                productName: prod.name,
-                type: delta > 0 ? "entrada" : "salida",
-                quantity: Math.abs(delta),
-                previousStock: previousStock,
-                newStock: newStock,
-                notes: `Ajuste rápido (${delta > 0 ? '+1' : '-1'})`,
-                timestamp: new Date().toISOString()
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('prodId').value;
+            const data = {
+                sku: document.getElementById('prodSku').value.trim(),
+                category: document.getElementById('prodCategory').value.trim(),
+                name: document.getElementById('prodName').value.trim(),
+                price: parseFloat(document.getElementById('prodPrice').value),
+                stock: parseInt(document.getElementById('prodStock').value, 10)
             };
-
-            movements.unshift(newMovement);
-            saveState();
-            renderInventoryTable();
-            updateKPIs();
-
-            const actionText = delta > 0 ? `+1 unidad agregada a "${prod.name}"` : `-1 unidad retirada de "${prod.name}"`;
-            showToast(actionText, delta > 0 ? "success" : "info");
-        }
-
-        function renderMovementsTable() {
-            const filterType = document.getElementById('filter-mov-type').value;
-            const tbody = document.getElementById('movements-table-body');
-            tbody.innerHTML = '';
-
-            const filteredMovs = movements.filter(m => filterType === '' || m.type === filterType);
-
-            if (filteredMovs.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-slate-400">
-                            No se registran movimientos en el historial.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            filteredMovs.forEach(m => {
-                let typeBadge = '';
-                if (m.type === 'entrada') {
-                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Entrada</span>`;
-                } else if (m.type === 'salida') {
-                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>Salida</span>`;
-                } else {
-                    typeBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Ajuste</span>`;
-                }
-
-                const dateFormatted = new Date(m.timestamp).toLocaleString('es-ES', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">${dateFormatted}</td>
-                    <td class="py-3 px-4 whitespace-nowrap">${typeBadge}</td>
-                    <td class="py-3 px-4">
-                        <div class="font-semibold text-slate-800 text-xs">${escapeHtml(m.productName)}</div>
-                        <div class="text-[11px] font-mono text-slate-400">SKU: ${escapeHtml(m.sku)}</div>
-                    </td>
-                    <td class="py-3 px-4 text-center font-bold text-slate-800 whitespace-nowrap">
-                        ${m.type === 'salida' ? '-' : '+'}${m.quantity}
-                    </td>
-                    <td class="py-3 px-4 text-center text-xs font-mono text-slate-600 whitespace-nowrap">
-                        ${m.previousStock} <span class="text-slate-400">➔</span> <span class="font-bold text-slate-900">${m.newStock}</span>
-                    </td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">Sin notas</span>'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function confirmClearHistory() {
-            showConfirmModal(
-                "Limpiar Historial de Movimientos",
-                "¿Deseas eliminar todo el registro de movimientos del sistema?",
-                () => {
-                    movements = [];
-                    saveState();
-                    renderMovementsTable();
-                    updateKPIs();
-                    showToast("Historial de movimientos limpiado.", "info");
-                }
-            );
-        }
-
-        function openAddProductModal() {
-            document.getElementById('modal-product-title').textContent = "Agregar Nuevo Producto";
-            document.getElementById('product-form').reset();
-            document.getElementById('prod-id').value = "";
-            document.getElementById('product-modal').classList.remove('hidden');
-        }
-
-        function openEditProductModal(productId) {
-            const p = products.find(item => item.id === productId);
-            if (!p) return;
-
-            document.getElementById('modal-product-title').textContent = "Editar Producto";
-            document.getElementById('prod-id').value = p.id;
-            document.getElementById('prod-sku').value = p.sku;
-            document.getElementById('prod-name').value = p.name;
-            document.getElementById('prod-category').value = p.category;
-            document.getElementById('prod-stock').value = p.stock;
-            document.getElementById('prod-min-stock').value = p.minStock;
-            document.getElementById('prod-price').value = p.price;
-            document.getElementById('prod-location').value = p.location || '';
-            document.getElementById('prod-supplier').value = p.supplier || '';
-
-            document.getElementById('product-modal').classList.remove('hidden');
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.add('hidden');
-        }
-
-        function handleProductSubmit(event) {
-            event.preventDefault();
-
-            const id = document.getElementById('prod-id').value;
-            const sku = document.getElementById('prod-sku').value.trim().toUpperCase();
-            const name = document.getElementById('prod-name').value.trim();
-            const category = document.getElementById('prod-category').value.trim();
-            const stock = parseInt(document.getElementById('prod-stock').value, 10);
-            const minStock = parseInt(document.getElementById('prod-min-stock').value, 10);
-            const price = parseFloat(document.getElementById('prod-price').value);
-            const location = document.getElementById('prod-location').value.trim();
-            const supplier = document.getElementById('prod-supplier').value.trim();
-
-            const existingSku = products.find(p => p.sku === sku && p.id !== id);
-            if (existingSku) {
-                showToast(`El código SKU "${sku}" ya existe en otro producto.`, "warning");
-                return;
-            }
 
             if (id) {
-                const index = products.findIndex(p => p.id === id);
-                if (index !== -1) {
-                    const prevStock = products[index].stock;
-                    products[index] = { ...products[index], sku, name, category, stock, minStock, price, location, supplier };
-                    
-                    if (prevStock !== stock) {
-                        const diff = stock - prevStock;
-                        movements.unshift({
-                            id: "mov_" + Date.now(),
-                            productId: id,
-                            sku: sku,
-                            productName: name,
-                            type: diff > 0 ? "entrada" : "salida",
-                            quantity: Math.abs(diff),
-                            previousStock: prevStock,
-                            newStock: stock,
-                            notes: "Ajuste manual desde edición de producto",
-                            timestamp: new Date().toISOString()
-                        });
-                    }
-                    showToast("Producto actualizado exitosamente.", "success");
-                }
+                await updateDoc(doc(db, "productos", id), data);
+                await logMovement(data.name, 0, "Edición de ficha");
+                showToast("Producto actualizado en la nube");
             } else {
-                const newId = "prod_" + Date.now();
-                const newProd = { id: newId, sku, name, category, stock, minStock, price, location, supplier };
-                products.unshift(newProd);
-
-                movements.unshift({
-                    id: "mov_" + Date.now(),
-                    productId: newId,
-                    sku: sku,
-                    productName: name,
-                    type: "entrada",
-                    quantity: stock,
-                    previousStock: 0,
-                    newStock: stock,
-                    notes: "Alta inicial de producto",
-                    timestamp: new Date().toISOString()
-                });
-
-                showToast("Nuevo producto registrado correctamente.", "success");
+                await addDoc(collection(db, "productos"), data);
+                await logMovement(data.name, data.stock, "Alta inicial");
+                showToast("Producto guardado en la nube");
             }
+            window.closeProductModal();
+        });
 
-            saveState();
-            renderCategoryOptions();
-            renderInventoryTable();
-            updateKPIs();
-            closeProductModal();
-        }
+        // Login y Gestión de Contraseña en Firestore
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputPwd = document.getElementById('loginPassword').value;
+            const inputHash = await sha256(inputPwd);
+            const fallbackHash = await sha256(DEFAULT_PASSWORD);
 
-        function confirmDeleteProduct(productId) {
-            const p = products.find(item => item.id === productId);
-            if (!p) return;
+            if (inputHash === cloudPasswordHash || (!cloudPasswordHash && inputHash === fallbackHash)) {
+                sessionStorage.setItem('inv_cloud_auth', 'true');
+                document.getElementById('lockScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('loginError').classList.add('hidden');
+                document.getElementById('inactivityAlert').classList.add('hidden');
+                document.getElementById('loginPassword').value = '';
+                listenToInventory();
+                resetInactivityTimer();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        });
 
-            showConfirmModal(
-                "Eliminar Producto",
-                `¿Deseas eliminar permanentemente el producto "${p.name}" (${p.sku})?`,
-                () => {
-                    products = products.filter(item => item.id !== productId);
-                    saveState();
-                    renderCategoryOptions();
-                    renderInventoryTable();
-                    updateKPIs();
-                    showToast("Producto eliminado del inventario.", "info");
-                }
-            );
-        }
+        document.getElementById('changePwdForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const curr = document.getElementById('currentPwd').value;
+            const next = document.getElementById('newPwd').value;
+            const conf = document.getElementById('confirmPwd').value;
+            const errEl = document.getElementById('pwdModalError');
 
-        function openQuickMovementModal() {
-            const select = document.getElementById('mov-product-id');
-            select.innerHTML = '';
-
-            if (products.length === 0) {
-                showToast("No hay productos disponibles en el inventario.", "warning");
+            const currHash = await sha256(curr);
+            if (currHash !== cloudPasswordHash) {
+                errEl.textContent = "La contraseña actual es incorrecta.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (next !== conf) {
+                errEl.textContent = "Las contraseñas nuevas no coinciden.";
+                errEl.classList.remove('hidden');
                 return;
             }
 
-            products.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = `[${p.sku}] ${p.name} (Stock: ${p.stock})`;
-                select.appendChild(opt);
-            });
+            const newHash = await sha256(next);
+            await setDoc(doc(db, "config", "security"), { passwordHash: newHash });
+            cloudPasswordHash = newHash;
+            errEl.classList.add('hidden');
+            document.getElementById('changePwdForm').reset();
+            window.closePasswordModal();
+            showToast("Contraseña global actualizada en Firebase");
+        });
 
-            document.getElementById('movement-form').reset();
-            document.getElementById('movement-modal').classList.remove('hidden');
+        // Temporizador de inactividad
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            if (sessionStorage.getItem('inv_cloud_auth') === 'true') {
+                inactivityTimer = setTimeout(() => window.lockSession(true), INACTIVITY_TIMEOUT);
+            }
         }
 
-        function closeMovementModal() {
-            document.getElementById('movement-modal').classList.add('hidden');
-        }
+        window.lockSession = (byInactivity = false) => {
+            sessionStorage.removeItem('inv_cloud_auth');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('lockScreen').classList.remove('hidden');
+            if (byInactivity) document.getElementById('inactivityAlert').classList.remove('hidden');
+        };
 
-        function handleMovementSubmit(event) {
-            event.preventDefault();
+        ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(ev => {
+            document.addEventListener(ev, resetInactivityTimer, true);
+        });
 
-            const productId = document.getElementById('mov-product-id').value;
-            const typeRadios = document.getElementsByName('mov-type');
-            let type = 'entrada';
-            for (const r of typeRadios) {
-                if (r.checked) type = r.value;
-            }
-
-            const qty = parseInt(document.getElementById('mov-quantity').value, 10);
-            const notes = document.getElementById('mov-notes').value.trim();
-
-            const prod = products.find(p => p.id === productId);
-            if (!prod) return;
-
-            const previousStock = prod.stock;
-            let newStock = previousStock;
-
-            if (type === 'salida') {
-                if (qty > previousStock) {
-                    showToast(`Stock insuficiente. Disponible: ${previousStock}`, "warning");
-                    return;
-                }
-                newStock = previousStock - qty;
-            } else {
-                newStock = previousStock + qty;
-            }
-
-            prod.stock = newStock;
-
-            movements.unshift({
-                id: "mov_" + Date.now(),
-                productId: prod.id,
-                sku: prod.sku,
-                productName: prod.name,
-                type: type,
-                quantity: qty,
-                previousStock: previousStock,
-                newStock: newStock,
-                notes: notes || (type === 'entrada' ? 'Entrada manual' : 'Salida manual'),
-                timestamp: new Date().toISOString()
-            });
-
-            saveState();
-            renderInventoryTable();
-            updateKPIs();
-            closeMovementModal();
-            showToast(`Movimiento registrado: ${type === 'entrada' ? '+' : '-'}${qty} en "${prod.name}"`, "success");
-        }
-
-        function exportToCSV() {
-            if (products.length === 0) {
-                showToast("No hay productos para exportar.", "warning");
-                return;
-            }
-
-            const headers = ["SKU", "Nombre", "Categoria", "Stock_Actual", "Stock_Minimo", "Precio_Unitario", "Valor_Total", "Ubicacion", "Proveedor"];
-            const rows = products.map(p => [
-                `"${p.sku.replace(/"/g, '""')}"`,
-                `"${p.name.replace(/"/g, '""')}"`,
-                `"${p.category.replace(/"/g, '""')}"`,
-                p.stock,
-                p.minStock,
-                p.price.toFixed(2),
-                (p.stock * p.price).toFixed(2),
-                `"${(p.location || '').replace(/"/g, '""')}"`,
-                `"${(p.supplier || '').replace(/"/g, '""')}"`
-            ]);
-
-            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            
+        // Utilidades UI
+        window.openProductModal = () => {
+            document.getElementById('productForm').reset();
+            document.getElementById('prodId').value = '';
+            document.getElementById('modalTitle').textContent = "Nuevo Producto";
+            document.getElementById('productModal').classList.remove('hidden');
+        };
+        window.closeProductModal = () => document.getElementById('productModal').classList.add('hidden');
+        window.openPasswordModal = () => document.getElementById('passwordModal').classList.remove('hidden');
+        window.closePasswordModal = () => document.getElementById('passwordModal').classList.add('hidden');
+        window.togglePwdVisibility = (inputId, iconId) => {
+            const inp = document.getElementById(inputId);
+            const ico = document.getElementById(iconId);
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            ico.classList.toggle('fa-eye');
+            ico.classList.toggle('fa-eye-slash');
+        };
+        window.exportCSV = () => {
+            const rows = [["SKU", "Nombre", "Categoria", "Precio", "Stock"]];
+            productsList.forEach(p => rows.push([p.sku, p.name, p.category, p.price, p.stock]));
+            const csv = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Inventario_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("href", encodeURI(csv));
+            link.setAttribute("download", "inventario_cloud.csv");
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-
-            showToast("Archivo CSV descargado con éxito.", "success");
+            link.remove();
+        };
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        // Custom Confirmation Dialog Helper
-        let confirmCallback = null;
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('statusFilter').addEventListener('change', renderTable);
 
-        function showConfirmModal(title, message, onConfirm) {
-            document.getElementById('confirm-title').textContent = title;
-            document.getElementById('confirm-message').textContent = message;
-            confirmCallback = onConfirm;
-
-            const confirmBtn = document.getElementById('confirm-action-btn');
-            confirmBtn.onclick = () => {
-                if (confirmCallback) confirmCallback();
-                closeConfirmModal();
-            };
-
-            document.getElementById('confirm-modal').classList.remove('hidden');
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            confirmCallback = null;
-        }
-
-        // Toast System
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-
-            let bgClass = 'bg-slate-900 text-white border-slate-700';
-            let icon = `<svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-
-            if (type === 'success') {
-                bgClass = 'bg-slate-900 text-white border-emerald-500';
-                icon = `<svg class="w-5 h-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-            } else if (type === 'warning') {
-                bgClass = 'bg-slate-900 text-white border-amber-500';
-                icon = `<svg class="w-5 h-5 text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        // Arranque inicial
+        initCloudSecurity().then(() => {
+            if (sessionStorage.getItem('inv_cloud_auth') === 'true') {
+                document.getElementById('lockScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                listenToInventory();
+                resetInactivityTimer();
             }
-
-            toast.className = `flex items-center px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transform transition-all duration-300 pointer-events-auto opacity-0 translate-y-2 ${bgClass}`;
-            toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
-
-            container.appendChild(toast);
-
-            requestAnimationFrame(() => {
-                toast.classList.remove('opacity-0', 'translate-y-2');
-            });
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => {
-                    if (toast.parentNode) toast.parentNode.removeChild(toast);
-                }, 300);
-            }, 3500);
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+        });
     </script>
 </body>
 </html>
