@@ -471,7 +471,7 @@
         function updateKPIs() {
             document.getElementById('kpiTotalProducts').textContent = productsList.length;
             const totalVal = productsList.reduce((acc, p) => acc + (p.price * p.stock), 0);
-            document.getElementById('kpiTotalValue').textContent = `$Bs{totalVal.toFixed(2)}`;
+            document.getElementById('kpiTotalValue').textContent = `Bs${totalVal.toFixed(2)}`;
             document.getElementById('kpiLowStock').textContent = productsList.filter(p => p.stock > 0 && p.stock <= 5).length;
             document.getElementById('kpiOutStock').textContent = productsList.filter(p => p.stock === 0).length;
         }
