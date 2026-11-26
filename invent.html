@@ -365,7 +365,7 @@
                 showToast("Permiso denegado en Firestore. Revisa tu UID en las reglas.");
             });
 
-            const movQ = query(collection(db, "movimientos"), orderBy("timestamp", "desc"), limit(20));
+            const movQ = query(collection(db, "movimientos"), orderBy("timestamp", "desc"), limit(15));
             unsubscribeMovements = onSnapshot(movQ, (snapshot) => {
                 const listEl = document.getElementById('movementsList');
                 if (snapshot.empty) {
