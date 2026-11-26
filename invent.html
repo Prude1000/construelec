@@ -451,7 +451,7 @@
                     <td class="py-3 px-4 font-medium text-slate-800">${p.name}</td>
                     <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">${p.category}</span></td>
                     <td class="py-3 px-4 text-slate-600 text-xs"><i class="fas fa-location-dot text-indigo-400 mr-1"></i>${p.location || 'Sin asignar'}</td>
-                    <td class="py-3 px-4 text-right font-medium">$${Number(p.price).toFixed(2)}</td>
+                    <td class="py-3 px-4 text-right font-medium">Bs${Number(p.price).toFixed(2)}</td>
                     <td class="py-3 px-4">
                         <div class="flex items-center justify-center gap-2">
                             <button onclick="window.adjustStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-200 hover:bg-red-100 hover:text-red-600 font-bold transition">-</button>
